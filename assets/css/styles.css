@@ -698,29 +698,136 @@ textarea::placeholder {
    ============================================ */
 
 @media print {
+    /* Reset everything to print-friendly defaults */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
     body {
         background: white !important;
         padding: 0 !important;
         margin: 0 !important;
+        color: #000 !important;
     }
 
-    .container, header, .panel:not(.print-panel), .toast-container {
+    /* Hide UI elements */
+    header,
+    .toast-container,
+    .panel:not(.print-panel),
+    .panel-header,
+    .settings-row,
+    .btn-group,
+    .voice-status,
+    .voice-transcript,
+    .saved-bins {
         display: none !important;
     }
 
+    /* Container adjustments */
+    .container {
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+    }
+
+    .main-grid {
+        display: block !important;
+        background: white !important;
+    }
+
+    /* Show the print panel */
+    .print-panel {
+        display: block !important;
+        background: white !important;
+        color: #000 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Label preview containers */
     .label-preview-container {
         box-shadow: none !important;
         border: none !important;
+        background: white !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
     }
 
+    .label-preview {
+        background: white !important;
+        color: #000 !important;
+        min-height: auto !important;
+        padding: 0 !important;
+    }
+
+    /* Empty state - hide it in print */
+    .empty-state {
+        display: none !important;
+    }
+
+    /* Label page styling */
     .label-page {
         box-shadow: none !important;
         margin: 0 !important;
         page-break-after: always !important;
+        background: white !important;
+        color: #000 !important;
+        width: 4in !important;
+        min-height: 6in !important;
     }
 
     .label-page:last-child {
         page-break-after: avoid !important;
+    }
+
+    /* Ensure all label text is black */
+    .label-page,
+    .label-page *,
+    .label-header,
+    .label-bin-name,
+    .label-bin-id,
+    .label-contents,
+    .label-contents-title,
+    .label-item,
+    .item-qty,
+    .item-name,
+    .label-barcode-section,
+    .label-barcode,
+    .label-barcode-text,
+    .label-continuation,
+    .label-page-indicator {
+        color: #000 !important;
+        background: white !important;
+    }
+
+    /* Specific gray text elements */
+    .label-bin-id,
+    .label-barcode-text {
+        color: #666 !important;
+    }
+
+    .label-continuation {
+        color: #666 !important;
+    }
+
+    .label-page-indicator {
+        color: #999 !important;
+    }
+
+    /* Border colors */
+    .label-header {
+        border-bottom-color: #000 !important;
+    }
+
+    .label-item {
+        border-bottom-color: #ccc !important;
+    }
+
+    .label-barcode-section {
+        border-top-color: #000 !important;
     }
 
     @page {

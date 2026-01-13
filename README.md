@@ -8,7 +8,7 @@ A simple web app for creating printable labels for storage bins. Everything runs
 
 ## Features
 
-- **Voice input** - Talk to your computer and it'll type for you. Say "next" to move to a new line. Works best in Chrome/Edge.
+- **Voice input** - Talk to your computer and it'll type for you. Say "next" to move to a new line. Works best in Chrome/Edge on non-mobile devices.
 - **Text input** - Old school typing. Use `[quantity] [item name]` format if you want.
 - **Smart number parsing** - Converts spoken numbers like "five" to digits automatically.
 - **Multi-page labels** - Long lists automatically split across multiple pages.
