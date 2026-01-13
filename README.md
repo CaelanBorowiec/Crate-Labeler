@@ -98,25 +98,6 @@ This is useful for:
 - Bookmarking frequently accessed crates
 - Quick navigation between crates
 
-## Project Structure
-
-```
-Crate-Labeler/
-├── index.html              # Main HTML file
-├── README.md               # This file
-├── crate-labeler-example.png  # Example screenshot
-└── assets/
-    ├── css/
-    │   └── styles.css      # All the styling
-    ├── fonts/
-    │   ├── LibreBarcode128-Regular.ttf   # Barcode font
-    │   └── LibreBarcode39-Regular.ttf    # Alternative barcode font
-    └── js/
-        ├── app.js                        # Main app logic
-        ├── html2canvas.min.js            # For PDF generation
-        └── jspdf.umd.min.js              # PDF library
-```
-
 ## Technical Stuff
 
 ### Data Storage
@@ -178,7 +159,6 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 ## TODO
 
 - [ ] Mobile layout improvements
-- [ ] Recall crates with barcodes
 
 ## Future Ideas
 
