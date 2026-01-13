@@ -275,6 +275,19 @@ h1 {
         font-size: 0.9rem !important;
     }
 
+    /* Make export/import buttons fit on one line */
+    .saved-bins .btn-group {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .saved-bins .btn-group .btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
     .bin-card {
         padding: 10px 12px;
         gap: 8px;
