@@ -160,10 +160,10 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 ## TODO
 
 - [ ] Mobile layout improvements
-- [ ] Capitalization fixes
+- [ ] Capitalization fixes - don't remove caps from proper names like XLR and HDMI
 - [ ] Recall crates with barcodes
 - [ ] Base URL autodetect
-- [ ] No data warning
+- [ ] No data warning when trying to load a create we dont know about
 
 ## Contributing
 

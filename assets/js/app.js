@@ -89,8 +89,17 @@ function init() {
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-  barcodeUrlInput.value =
-    settings.barcodeUrl || "https://inventory.example.com/crate/";
+
+  // Detect base URL from current page location
+  const detectedBaseUrl = (() => {
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    // Get directory path (remove filename if present)
+    const directory = pathname.substring(0, pathname.lastIndexOf("/") + 1);
+    return origin + directory + "crate/";
+  })();
+
+  barcodeUrlInput.value = settings.barcodeUrl || detectedBaseUrl;
   itemsPerPageInput.value = settings.itemsPerPage || 10;
 }
 
