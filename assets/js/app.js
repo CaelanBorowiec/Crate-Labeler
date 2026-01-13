@@ -45,6 +45,7 @@ let importModalMessage;
 
 // Import state
 let pendingImportData = null;
+let requestedBinId = null; // Track bin ID requested via hash
 
 // ============================================
 // INITIALIZATION
@@ -85,12 +86,27 @@ function init() {
   loadBins();
   setupSpeechRecognition();
   setupEventListeners();
+
+  // Check for hash on initial load
+  checkHashAndLoadBin();
+
+  // Listen for hash changes
+  window.addEventListener("hashchange", checkHashAndLoadBin);
 }
 
 function loadSettings() {
   const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-  barcodeUrlInput.value =
-    settings.barcodeUrl || "https://inventory.example.com/crate/";
+
+  // Detect base URL from current page location
+  const detectedBaseUrl = (() => {
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    // Get directory path (remove filename if present)
+    const directory = pathname.substring(0, pathname.lastIndexOf("/") + 1);
+    return origin + directory + "crate/";
+  })();
+
+  barcodeUrlInput.value = settings.barcodeUrl || detectedBaseUrl;
   itemsPerPageInput.value = settings.itemsPerPage || 10;
 }
 
@@ -264,9 +280,8 @@ function processVoiceTranscript(transcript) {
   // Remove consecutive duplicate words (common mobile speech recognition issue)
   const deduplicatedTranscript = deduplicateConsecutiveWords(transcript);
 
-  // Normalize and split by "next"
+  // Normalize and split by "next" (preserve capitalization from speech-to-text)
   const normalized = deduplicatedTranscript
-    .toLowerCase()
     .replace(/,?\s*next\s*,?/gi, "\n")
     .replace(/,/g, "\n")
     .trim();
@@ -276,7 +291,7 @@ function processVoiceTranscript(transcript) {
   const parsedItems = [];
 
   for (const line of lines) {
-    const parsed = parseItemLine(line.trim());
+    const parsed = parseItemLine(line.trim(), true); // true = from voice input
     if (parsed) {
       parsedItems.push(`${parsed.quantity} ${parsed.name}`);
     }
@@ -293,9 +308,10 @@ function processVoiceTranscript(transcript) {
   }
 }
 
-function parseItemLine(line) {
+function parseItemLine(line, fromVoiceInput = false) {
   // Try to extract quantity and item name
   // Patterns: "5 hdmi cables", "five hdmi cables", "hdmi cable"
+  // If fromVoiceInput is false, preserve original capitalization
 
   const wordToNum = {
     one: 1,
@@ -324,7 +340,7 @@ function parseItemLine(line) {
   if (numMatch) {
     return {
       quantity: parseInt(numMatch[1]),
-      name: capitalizeWords(numMatch[2]),
+      name: fromVoiceInput ? capitalizeWords(numMatch[2]) : numMatch[2],
     };
   }
 
@@ -332,17 +348,19 @@ function parseItemLine(line) {
   const words = line.split(/\s+/);
   const firstWord = words[0].toLowerCase();
   if (wordToNum[firstWord]) {
+    const remainingText = words.slice(1).join(" ");
     return {
       quantity: wordToNum[firstWord],
-      name: capitalizeWords(words.slice(1).join(" ")),
+      name: fromVoiceInput ? capitalizeWords(remainingText) : remainingText,
     };
   }
 
   // Check for "a" or "an" at start (means 1)
   if (firstWord === "a" || firstWord === "an") {
+    const remainingText = words.slice(1).join(" ");
     return {
       quantity: 1,
-      name: capitalizeWords(words.slice(1).join(" ")),
+      name: fromVoiceInput ? capitalizeWords(remainingText) : remainingText,
     };
   }
 
@@ -350,7 +368,7 @@ function parseItemLine(line) {
   if (line.trim()) {
     return {
       quantity: 1,
-      name: capitalizeWords(line),
+      name: fromVoiceInput ? capitalizeWords(line) : line,
     };
   }
 
@@ -361,6 +379,47 @@ function capitalizeWords(str) {
   return str
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function toTitleCase(str) {
+  // Convert to title case, preserving existing capitalization for acronyms
+  // Small words (of, the, a, an, etc.) stay lowercase unless first word
+  const smallWords = new Set([
+    "of",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "with",
+    "by",
+  ]);
+
+  return str
+    .split(" ")
+    .map((word, index) => {
+      const lowerWord = word.toLowerCase();
+
+      // If word is already all uppercase (likely an acronym), keep it
+      if (word === word.toUpperCase() && word.length > 1) {
+        return word;
+      }
+
+      // Small words stay lowercase unless they're the first word
+      if (index > 0 && smallWords.has(lowerWord)) {
+        return lowerWord;
+      }
+
+      // Otherwise, capitalize first letter, lowercase the rest
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
     .join(" ");
 }
 
@@ -434,7 +493,9 @@ function generateBinId() {
 function getBinFullName() {
   const namespace = binNamespaceInput.value.trim() || "Crate";
   const number = binNumberInput.value || "1";
-  return `${namespace} ${number}`;
+  // Apply title case to namespace for better display
+  const titleCaseNamespace = toTitleCase(namespace);
+  return `${titleCaseNamespace} ${number}`;
 }
 
 function parseContents(text) {
@@ -472,10 +533,11 @@ function generateLabel() {
   }
 
   // Save bin data
+  const namespace = binNamespaceInput.value.trim();
   const binData = {
     id: currentBinId,
     name: binName,
-    namespace: binNamespaceInput.value.trim(),
+    namespace: toTitleCase(namespace), // Save namespace in title case
     number: parseInt(binNumberInput.value) || 1,
     items: items,
     createdAt: new Date().toISOString(),
@@ -488,13 +550,17 @@ function generateLabel() {
   // Render labels
   renderLabels(binData);
 
+  // Update hash to reflect generated bin
+  updateHash(currentBinId);
+
   showToast("Label generated successfully!", "success");
 }
 
 function renderLabels(binData) {
   const itemsPerPage = parseInt(itemsPerPageInput.value) || 10;
-  const barcodeUrl = barcodeUrlInput.value || "";
-  const fullBarcodeUrl = barcodeUrl + binData.id;
+  // Generate hash-based URL for viewing this crate
+  const currentUrl = window.location.origin + window.location.pathname;
+  const fullBarcodeUrl = currentUrl + "#" + binData.id;
 
   // Split items into pages
   const pages = [];
@@ -589,6 +655,9 @@ function nextBin() {
         </div>
     `;
 
+  // Clear hash when moving to next bin
+  updateHash(null);
+
   showToast(`Ready for ${getBinFullName()}`, "success");
 }
 
@@ -603,6 +672,9 @@ function clearAll() {
             <p>Enter contents and click "Generate Label" to preview</p>
         </div>
     `;
+
+  // Clear hash when clearing
+  updateHash(null);
 }
 
 function loadBinToEditor(binId) {
@@ -611,6 +683,10 @@ function loadBinToEditor(binId) {
 
   if (!bin) {
     showToast("Crate not found", "error");
+    // Clear hash if bin doesn't exist
+    if (window.location.hash === `#${binId}`) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     return;
   }
 
@@ -626,6 +702,9 @@ function loadBinToEditor(binId) {
 
   // Render the label
   renderLabels(bin);
+
+  // Update hash to reflect loaded bin
+  updateHash(binId);
 
   showToast(`Loaded ${bin.name}`, "success");
 }
@@ -685,6 +764,7 @@ function confirmDeleteBin(binId) {
     if (currentBinId === binId) {
       clearAll();
       currentBinId = null;
+      updateHash(null);
     }
 
     showToast("Crate deleted", "success");
@@ -783,6 +863,9 @@ function processImportData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(importedBins));
     loadBins();
     showToast(`Imported ${importCount} crate(s) successfully!`, "success");
+
+    // Check if the requested bin is now available
+    checkAndLoadRequestedBin(importedBins);
     return;
   }
 
@@ -837,6 +920,9 @@ function executeOverwrite() {
   const count = Object.keys(pendingImportData).length;
   showToast(`Replaced with ${count} imported crate(s)!`, "success");
 
+  // Check if the requested bin is now available
+  checkAndLoadRequestedBin(pendingImportData);
+
   hideImportModal();
 }
 
@@ -874,6 +960,9 @@ function executeMerge() {
     message += `, renamed ${renamedCount} duplicate(s)`;
   }
   showToast(message, "success");
+
+  // Check if the requested bin is now available
+  checkAndLoadRequestedBin(mergedBins);
 
   hideImportModal();
 }
@@ -941,6 +1030,92 @@ async function downloadPdf() {
   pdf.save(`${binName}_labels.pdf`);
 
   showToast("PDF downloaded!", "success");
+}
+
+// ============================================
+// HASH ROUTING
+// ============================================
+
+function checkHashAndLoadBin() {
+  const hash = window.location.hash;
+  if (!hash || hash.length <= 1) {
+    return; // No hash or just "#"
+  }
+
+  const binId = hash.substring(1); // Remove the "#"
+  if (!binId) {
+    return;
+  }
+
+  // Load the bin if it exists
+  const bins = getBins();
+  if (bins[binId]) {
+    // Use a small delay to ensure DOM is ready
+    setTimeout(() => {
+      loadBinToEditor(binId);
+      // Scroll to top to show the loaded bin
+      window.scrollTo(0, 0);
+    }, 100);
+  } else {
+    // Show persistent message with import prompt
+    showCrateNotFoundMessage(binId);
+  }
+}
+
+function showCrateNotFoundMessage(binId) {
+  // Store the requested bin ID so we can check after import
+  requestedBinId = binId;
+
+  // Display persistent message in label preview
+  labelPreview.innerHTML = `
+    <div class="empty-state" style="color: #d1242f;">
+      <div class="empty-state-icon">📦</div>
+      <h3 style="margin: 16px 0 8px 0; font-size: 1.2rem;">Crate Not Found</h3>
+      <p style="margin-bottom: 16px;">The crate <strong>${escapeHtml(
+        binId
+      )}</strong> was not found in your local storage.</p>
+      <p style="margin-bottom: 24px; color: #666;">If you have a saved export file, you can import it to load this crate.</p>
+      <button class="btn btn-primary" onclick="triggerImport()" style="margin-top: 8px;">
+        📥 Import Crate Data
+      </button>
+      <button class="btn btn-secondary" onclick="clearCrateNotFoundMessage()" style="margin-top: 8px; margin-left: 8px;">
+        Dismiss
+      </button>
+    </div>
+  `;
+
+  // Also show a toast
+  showToast(`Crate ${binId} not found. You can import a saved file.`, "error");
+
+  // Scroll to top to show the message
+  window.scrollTo(0, 0);
+}
+
+function clearCrateNotFoundMessage() {
+  // Clear the hash and requested bin ID
+  window.history.replaceState(null, "", window.location.pathname);
+  requestedBinId = null;
+
+  // Show default empty state
+  labelPreview.innerHTML = `
+    <div class="empty-state" style="color: #666;">
+      <div class="empty-state-icon">🏷️</div>
+      <p>Enter contents and click "Generate Label" to preview</p>
+    </div>
+  `;
+}
+
+function checkAndLoadRequestedBin(bins) {
+  // If there was a requested bin ID and it's now available, load it
+  if (requestedBinId && bins[requestedBinId]) {
+    const binIdToLoad = requestedBinId; // Store before clearing
+    requestedBinId = null; // Clear the requested ID
+    setTimeout(() => {
+      loadBinToEditor(binIdToLoad);
+      showToast(`Found and loaded crate ${binIdToLoad}!`, "success");
+      window.scrollTo(0, 0);
+    }, 100);
+  }
 }
 
 // ============================================
