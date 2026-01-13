@@ -6,6 +6,8 @@ A simple web app for creating printable labels for storage bins. Everything runs
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+![Crate Labeler Screenshot](crate-labeler-example.png)
+
 ## Features
 
 - **Voice input** - Talk to your computer and it'll type for you. Say "next" to move to a new line. Works best in Chrome/Edge on non-mobile devices.
