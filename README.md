@@ -6,7 +6,7 @@ A simple web app for creating printable labels for storage crates. Everything ru
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
 ![License](https://img.shields.io/badge/License-CC%20BY%204.0-blue)
 
-![Crate Labeler Screenshot](crate-labeler-example.png)
+![Crate Labeler Screenshot](crate-labeler-qr-example.png)
 
 ## Features
 
