@@ -85,6 +85,12 @@ function init() {
   loadBins();
   setupSpeechRecognition();
   setupEventListeners();
+
+  // Check for hash on initial load
+  checkHashAndLoadBin();
+
+  // Listen for hash changes
+  window.addEventListener("hashchange", checkHashAndLoadBin);
 }
 
 function loadSettings() {
@@ -497,6 +503,9 @@ function generateLabel() {
   // Render labels
   renderLabels(binData);
 
+  // Update hash to reflect generated bin
+  updateHash(currentBinId);
+
   showToast("Label generated successfully!", "success");
 }
 
@@ -598,6 +607,9 @@ function nextBin() {
         </div>
     `;
 
+  // Clear hash when moving to next bin
+  updateHash(null);
+
   showToast(`Ready for ${getBinFullName()}`, "success");
 }
 
@@ -612,6 +624,9 @@ function clearAll() {
             <p>Enter contents and click "Generate Label" to preview</p>
         </div>
     `;
+
+  // Clear hash when clearing
+  updateHash(null);
 }
 
 function loadBinToEditor(binId) {
@@ -620,6 +635,10 @@ function loadBinToEditor(binId) {
 
   if (!bin) {
     showToast("Crate not found", "error");
+    // Clear hash if bin doesn't exist
+    if (window.location.hash === `#${binId}`) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
     return;
   }
 
@@ -635,6 +654,9 @@ function loadBinToEditor(binId) {
 
   // Render the label
   renderLabels(bin);
+
+  // Update hash to reflect loaded bin
+  updateHash(binId);
 
   showToast(`Loaded ${bin.name}`, "success");
 }
@@ -694,6 +716,7 @@ function confirmDeleteBin(binId) {
     if (currentBinId === binId) {
       clearAll();
       currentBinId = null;
+      updateHash(null);
     }
 
     showToast("Crate deleted", "success");
@@ -950,6 +973,51 @@ async function downloadPdf() {
   pdf.save(`${binName}_labels.pdf`);
 
   showToast("PDF downloaded!", "success");
+}
+
+// ============================================
+// HASH ROUTING
+// ============================================
+
+function checkHashAndLoadBin() {
+  const hash = window.location.hash;
+  if (!hash || hash.length <= 1) {
+    return; // No hash or just "#"
+  }
+
+  const binId = hash.substring(1); // Remove the "#"
+  if (!binId) {
+    return;
+  }
+
+  // Load the bin if it exists
+  const bins = getBins();
+  if (bins[binId]) {
+    // Use a small delay to ensure DOM is ready
+    setTimeout(() => {
+      loadBinToEditor(binId);
+      // Scroll to top to show the loaded bin
+      window.scrollTo(0, 0);
+    }, 100);
+  } else {
+    showToast(`Crate ${binId} not found`, "error");
+    // Clear invalid hash
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}
+
+function updateHash(binId) {
+  if (binId) {
+    const newHash = `#${binId}`;
+    if (window.location.hash !== newHash) {
+      window.history.replaceState(null, "", window.location.pathname + newHash);
+    }
+  } else {
+    // Clear hash if no bin
+    if (window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }
 }
 
 // ============================================
