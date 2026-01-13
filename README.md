@@ -17,6 +17,9 @@ A simple web app for creating printable labels for storage crates. Everything ru
 - **Barcode generation** - Each crate gets a unique ID with a scannable Code 128 barcode.
 - **Namespace system** - Group your crates (like "Audio Gear 1", "Audio Gear 2") and it'll auto-increment the numbers.
 - **PDF export** - Download labels as PDFs ready to print (4" × 6" format).
+- **Export/Import** - Export all your crates as JSON or import from a backup file.
+- **Hash-based routing** - Share direct links to specific crates using `#BIN-ID` in the URL.
+- **Auto-detected base URL** - The barcode base URL is automatically detected from your current location.
 - **Local storage** - Everything saves in your browser. No accounts, no cloud, no nonsense.
 - **Print ready** - Optimized for printing, but honestly it works fine for screen viewing too.
 
@@ -25,8 +28,8 @@ A simple web app for creating printable labels for storage crates. Everything ru
 Just download or clone this repo and open `index.html` in a browser. That's it. No build step, no npm install, no server to run.
 
 ```bash
-git clone https://github.com/your-username/Crate-Packer.git
-cd Crate-Packer
+git clone https://github.com/CaelanBorowiec/Crate-Labeler.git
+cd Crate-Labeler
 # Now just open index.html in your browser
 ```
 
@@ -78,15 +81,30 @@ cd Crate-Packer
 
 There are a couple settings you can tweak:
 
-- **Barcode Base URL** - If you want the barcode to link somewhere, set this. Defaults to a placeholder.
+- **Barcode Base URL** - If you want the barcode to link somewhere, set this. Automatically detected from your current URL, but you can override it.
 - **Items Per Label** - How many items fit on one label before it splits to a new page. Default is 10.
+
+### Viewing Crates via URL
+
+You can view any saved crate directly by adding its ID to the URL hash:
+
+```
+https://yoursite.com/crate-labeler/#BIN-M4X7K2-A3B9
+```
+
+This is useful for:
+
+- Sharing specific crate labels with others
+- Bookmarking frequently accessed crates
+- Quick navigation between crates
 
 ## Project Structure
 
 ```
-Crate-Packer/
+Crate-Labeler/
 ├── index.html              # Main HTML file
 ├── README.md               # This file
+├── crate-labeler-example.png  # Example screenshot
 └── assets/
     ├── css/
     │   └── styles.css      # All the styling
@@ -162,8 +180,6 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 - [ ] Mobile layout improvements
 - [ ] Capitalization fixes - don't remove caps from proper names like XLR and HDMI
 - [ ] Recall crates with barcodes
-- [ ] Base URL autodetect
-- [ ] No data warning when trying to load a create we dont know about
 
 ## Contributing
 
@@ -174,11 +190,11 @@ If you want to add something or fix a bug, go for it. Fork the repo, make your c
 Things I might add eventually (or you could add):
 
 - QR codes as an option
-- Export/import crate data as JSON
 - Different label size presets
 - Search through saved crates
 - Batch print multiple crates
 - Custom label templates
+- Shareable crate links with embedded data
 
 ## License
 
