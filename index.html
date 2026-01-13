@@ -153,6 +153,9 @@ Enter each item on a new line..."
             <button class="btn btn-secondary" id="downloadPdfBtn">
               📄 Download PDF
             </button>
+            <button class="btn btn-secondary" id="shareCrateBtn">
+              📲 Share Crate
+            </button>
           </div>
 
           <div class="label-preview-container mt-16">
@@ -196,7 +199,53 @@ Enter each item on a new line..."
       </div>
     </div>
 
+    <!-- Share QR Modal -->
+    <div class="modal-overlay" id="shareModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>📤 Share Crate</h3>
+          <button class="modal-close" id="shareModalClose">&times;</button>
+        </div>
+        <div class="modal-body share-modal-body">
+          <p id="shareModalMessage">
+            Scan this QR code on another device to import this crate.
+          </p>
+          <div class="share-qr-container" id="shareQrContainer"></div>
+          <p class="share-crate-name" id="shareCrateName"></p>
+          <p class="share-hint">
+            The QR code contains all crate data. No internet required!
+          </p>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="shareModalDone">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import from QR Modal -->
+    <div class="modal-overlay" id="importQrModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>📥 Import Shared Crate</h3>
+          <button class="modal-close" id="importQrModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="importQrModalMessage">
+            A crate was shared with you. Would you like to import it?
+          </p>
+          <div class="import-stats" id="importQrStats"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" id="importQrAccept">
+            ✓ Import Crate
+          </button>
+          <button class="btn btn-secondary" id="importQrCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <!-- External Libraries -->
+    <script src="assets/js/qrcode.min.js"></script>
     <script src="assets/js/jspdf.umd.min.js"></script>
     <script src="assets/js/html2canvas.min.js"></script>
 

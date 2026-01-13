@@ -1,6 +1,6 @@
 # Crate Inventory Labeler
 
-A simple web app for creating printable labels for storage crates. Everything runs in your browser—no server, no database, no hassle. Just open the HTML file and start labeling.
+A simple web app for creating printable labels for storage crates. Everything runs in your browser; no server, no database, no hassle. Just open the HTML file and start labeling.
 
 ![Made with HTML/CSS/JS](https://img.shields.io/badge/Made%20with-HTML%2FCSS%2FJS-blue)
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
@@ -98,25 +98,6 @@ This is useful for:
 - Bookmarking frequently accessed crates
 - Quick navigation between crates
 
-## Project Structure
-
-```
-Crate-Labeler/
-├── index.html              # Main HTML file
-├── README.md               # This file
-├── crate-labeler-example.png  # Example screenshot
-└── assets/
-    ├── css/
-    │   └── styles.css      # All the styling
-    ├── fonts/
-    │   ├── LibreBarcode128-Regular.ttf   # Barcode font
-    │   └── LibreBarcode39-Regular.ttf    # Alternative barcode font
-    └── js/
-        ├── app.js                        # Main app logic
-        ├── html2canvas.min.js            # For PDF generation
-        └── jspdf.umd.min.js              # PDF library
-```
-
 ## Technical Stuff
 
 ### Data Storage
@@ -178,7 +159,6 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 ## TODO
 
 - [ ] Mobile layout improvements
-- [ ] Recall crates with barcodes
 
 ## Future Ideas
 
@@ -197,12 +177,12 @@ This work is licensed under the [Creative Commons Attribution 4.0 International 
 
 You are free to:
 
-- **Share** — copy and redistribute the material in any medium or format
-- **Adapt** — remix, transform, and build upon the material for any purpose, even commercially
+- **Share** - copy and redistribute the material in any medium or format
+- **Adapt** - remix, transform, and build upon the material for any purpose, even commercially
 
 Under the following terms:
 
-- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+- **Attribution** - You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
 
 ## Credits
 

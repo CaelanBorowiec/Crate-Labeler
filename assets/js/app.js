@@ -42,10 +42,23 @@ let modalMerge;
 let modalCancel;
 let importStats;
 let importModalMessage;
+let shareCrateBtn;
+let shareModal;
+let shareModalClose;
+let shareModalDone;
+let shareQrContainer;
+let shareCrateName;
+let importQrModal;
+let importQrModalClose;
+let importQrAccept;
+let importQrCancel;
+let importQrStats;
+let importQrModalMessage;
 
 // Import state
 let pendingImportData = null;
 let requestedBinId = null; // Track bin ID requested via hash
+let pendingQrImportData = null; // Track crate data from QR import
 
 // ============================================
 // INITIALIZATION
@@ -82,16 +95,38 @@ function init() {
   importStats = document.getElementById("importStats");
   importModalMessage = document.getElementById("importModalMessage");
 
+  // Share modal elements
+  shareCrateBtn = document.getElementById("shareCrateBtn");
+  shareModal = document.getElementById("shareModal");
+  shareModalClose = document.getElementById("shareModalClose");
+  shareModalDone = document.getElementById("shareModalDone");
+  shareQrContainer = document.getElementById("shareQrContainer");
+  shareCrateName = document.getElementById("shareCrateName");
+
+  // Import from QR modal elements
+  importQrModal = document.getElementById("importQrModal");
+  importQrModalClose = document.getElementById("importQrModalClose");
+  importQrAccept = document.getElementById("importQrAccept");
+  importQrCancel = document.getElementById("importQrCancel");
+  importQrStats = document.getElementById("importQrStats");
+  importQrModalMessage = document.getElementById("importQrModalMessage");
+
   loadSettings();
   loadBins();
   setupSpeechRecognition();
   setupEventListeners();
 
+  // Check for shared crate data first (before regular hash check)
+  checkForSharedCrate();
+
   // Check for hash on initial load
   checkHashAndLoadBin();
 
   // Listen for hash changes
-  window.addEventListener("hashchange", checkHashAndLoadBin);
+  window.addEventListener("hashchange", () => {
+    checkForSharedCrate();
+    checkHashAndLoadBin();
+  });
 }
 
 function loadSettings() {
@@ -585,15 +620,27 @@ function renderLabels(binData) {
                   isFirstPage
                     ? `
                     <div class="label-header">
-                        <div class="label-bin-name">${escapeHtml(
-                          binData.name
-                        )}</div>
-                        <div class="label-bin-id">ID: ${binData.id}</div>
+                        <div class="label-header-text">
+                            <div class="label-bin-name">${escapeHtml(
+                              binData.name
+                            )}</div>
+                            <div class="label-bin-id">ID: ${binData.id}</div>
+                        </div>
+                        <div class="label-qrcode" data-url="${escapeHtml(
+                          fullBarcodeUrl
+                        )}"></div>
                     </div>
                 `
                     : `
-                    <div class="label-continuation">
-                        (Continued from ${escapeHtml(binData.name)})
+                    <div class="label-header label-header-continuation">
+                        <div class="label-header-text">
+                            <div class="label-continuation">
+                                (Continued from ${escapeHtml(binData.name)})
+                            </div>
+                        </div>
+                        <div class="label-qrcode" data-url="${escapeHtml(
+                          fullBarcodeUrl
+                        )}"></div>
                     </div>
                 `
                 }
@@ -614,27 +661,54 @@ function renderLabels(binData) {
                       .join("")}
                 </div>
 
-                <div class="label-barcode-section">
-                    <div class="label-barcode">${binData.id}</div>
+                <div class="label-footer">
                     <div class="label-barcode-text">${escapeHtml(
                       fullBarcodeUrl
                     )}</div>
+                    ${
+                      totalPages > 1
+                        ? `<div class="label-page-indicator">Page ${
+                            pageIndex + 1
+                          } of ${totalPages}</div>`
+                        : ""
+                    }
                 </div>
-
-                ${
-                  totalPages > 1
-                    ? `
-                    <div class="label-page-indicator">Page ${
-                      pageIndex + 1
-                    } of ${totalPages}</div>
-                `
-                    : ""
-                }
             </div>
         `;
   });
 
   labelPreview.innerHTML = html;
+
+  // Generate QR codes for all pages
+  generateQRCodes(fullBarcodeUrl);
+}
+
+function generateQRCodes(url) {
+  // Check if QRCode library is available
+  if (typeof QRCode === "undefined") {
+    console.warn("QRCode library not loaded");
+    return;
+  }
+
+  const qrContainers = labelPreview.querySelectorAll(".label-qrcode");
+
+  for (const container of qrContainers) {
+    const urlToEncode = container.getAttribute("data-url") || url;
+    // Clear any existing QR code
+    container.innerHTML = "";
+    try {
+      new QRCode(container, {
+        text: urlToEncode,
+        width: 80,
+        height: 80,
+        colorDark: "#000000",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
+  }
 }
 
 function nextBin() {
@@ -968,6 +1042,174 @@ function executeMerge() {
 }
 
 // ============================================
+// SHARE CRATE VIA QR
+// ============================================
+
+function showShareModal() {
+  if (!currentBinId) {
+    showToast("Generate or select a crate first", "error");
+    return;
+  }
+
+  const bins = getBins();
+  const bin = bins[currentBinId];
+
+  if (!bin) {
+    showToast("Crate not found", "error");
+    return;
+  }
+
+  // Generate share URL with encoded crate data
+  const shareData = {
+    v: 1, // version for future compatibility
+    crate: bin,
+  };
+
+  const encodedData = btoa(
+    unescape(encodeURIComponent(JSON.stringify(shareData)))
+  );
+  const baseUrl = window.location.origin + window.location.pathname;
+  const shareUrl = baseUrl + "#share=" + encodedData;
+
+  // Check if URL is too long (QR codes have limits)
+  if (shareUrl.length > 2000) {
+    showToast(
+      "Crate has too much data to share via QR. Try reducing items.",
+      "error"
+    );
+    return;
+  }
+
+  // Update modal content
+  shareCrateName.textContent = bin.name;
+
+  // Clear existing QR code
+  shareQrContainer.innerHTML = "";
+
+  // Generate QR code
+  if (typeof QRCode !== "undefined") {
+    new QRCode(shareQrContainer, {
+      text: shareUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#000000",
+      colorLight: "#FFFFFF",
+      correctLevel: QRCode.CorrectLevel.L, // Low error correction for more data capacity
+    });
+  } else {
+    shareQrContainer.innerHTML =
+      '<p style="color: red;">QR Code library not loaded</p>';
+  }
+
+  shareModal.classList.add("visible");
+}
+
+function hideShareModal() {
+  shareModal.classList.remove("visible");
+  shareQrContainer.innerHTML = "";
+}
+
+function checkForSharedCrate() {
+  const hash = window.location.hash;
+  if (!hash || !hash.startsWith("#share=")) {
+    return false;
+  }
+
+  const encodedData = hash.substring(7); // Remove "#share="
+  if (!encodedData) {
+    return false;
+  }
+
+  try {
+    const jsonString = decodeURIComponent(escape(atob(encodedData)));
+    const shareData = JSON.parse(jsonString);
+
+    if (!shareData.crate || !shareData.crate.id) {
+      showToast("Invalid share data", "error");
+      clearShareHash();
+      return false;
+    }
+
+    // Store the pending import data and show confirmation modal
+    pendingQrImportData = shareData.crate;
+    showImportQrModal(shareData.crate);
+    return true;
+  } catch (error) {
+    console.error("Error parsing shared crate data:", error);
+    showToast("Could not read shared crate data", "error");
+    clearShareHash();
+    return false;
+  }
+}
+
+function showImportQrModal(crateData) {
+  importQrModalMessage.textContent = `"${crateData.name}" was shared with you. Would you like to import it?`;
+
+  importQrStats.innerHTML = `
+    <div class="stats-row">
+      <span class="stats-label">Crate Name:</span>
+      <span class="stats-value">${escapeHtml(crateData.name)}</span>
+    </div>
+    <div class="stats-row">
+      <span class="stats-label">Items:</span>
+      <span class="stats-value">${
+        crateData.items ? crateData.items.length : 0
+      }</span>
+    </div>
+    <div class="stats-row">
+      <span class="stats-label">ID:</span>
+      <span class="stats-value">${crateData.id}</span>
+    </div>
+  `;
+
+  importQrModal.classList.add("visible");
+}
+
+function hideImportQrModal() {
+  importQrModal.classList.remove("visible");
+  pendingQrImportData = null;
+  clearShareHash();
+}
+
+function acceptQrImport() {
+  if (!pendingQrImportData) {
+    hideImportQrModal();
+    return;
+  }
+
+  const bins = getBins();
+  let crateToSave = { ...pendingQrImportData };
+
+  // Check for duplicate ID
+  if (bins[crateToSave.id]) {
+    // Generate new ID to avoid conflict
+    const newId = generateBinId();
+    crateToSave = {
+      ...crateToSave,
+      id: newId,
+      name: crateToSave.name + " (Shared)",
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  // Save the crate
+  saveBin(crateToSave.id, crateToSave);
+
+  // Load it into the editor
+  loadBinToEditor(crateToSave.id);
+
+  showToast(`Imported "${crateToSave.name}" successfully!`, "success");
+  hideImportQrModal();
+}
+
+function clearShareHash() {
+  // Clear the share hash from URL without triggering hashchange
+  if (window.location.hash.startsWith("#share=")) {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}
+
+// ============================================
 // PRINT & PDF
 // ============================================
 
@@ -986,6 +1228,20 @@ async function downloadPdf() {
   }
 
   showToast("Generating PDF...", "success");
+
+  // Ensure QR codes are generated before capturing (they should already be, but just in case)
+  const qrCanvases = labelPreview.querySelectorAll(".label-qrcode");
+  if (qrCanvases.length > 0 && currentBinId) {
+    const currentUrl = window.location.origin + window.location.pathname;
+    const bins = getBins();
+    const currentBin = bins[currentBinId];
+    if (currentBin) {
+      const fullBarcodeUrl = currentUrl + "#" + currentBin.id;
+      await generateQRCodes(fullBarcodeUrl);
+      // Small delay to ensure canvas is fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({
@@ -1036,10 +1292,23 @@ async function downloadPdf() {
 // HASH ROUTING
 // ============================================
 
+function updateHash(binId) {
+  if (binId) {
+    window.history.replaceState(null, "", "#" + binId);
+  } else {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}
+
 function checkHashAndLoadBin() {
   const hash = window.location.hash;
   if (!hash || hash.length <= 1) {
     return; // No hash or just "#"
+  }
+
+  // Skip if it's a share URL (handled by checkForSharedCrate)
+  if (hash.startsWith("#share=")) {
+    return;
   }
 
   const binId = hash.substring(1); // Remove the "#"
@@ -1170,6 +1439,22 @@ function setupEventListeners() {
   modalMerge.addEventListener("click", executeMerge);
   importModal.addEventListener("click", (e) => {
     if (e.target === importModal) hideImportModal();
+  });
+
+  // Share modal
+  shareCrateBtn.addEventListener("click", showShareModal);
+  shareModalClose.addEventListener("click", hideShareModal);
+  shareModalDone.addEventListener("click", hideShareModal);
+  shareModal.addEventListener("click", (e) => {
+    if (e.target === shareModal) hideShareModal();
+  });
+
+  // Import from QR modal
+  importQrModalClose.addEventListener("click", hideImportQrModal);
+  importQrCancel.addEventListener("click", hideImportQrModal);
+  importQrAccept.addEventListener("click", acceptQrImport);
+  importQrModal.addEventListener("click", (e) => {
+    if (e.target === importQrModal) hideImportQrModal();
   });
 
   // Auto-save settings on change

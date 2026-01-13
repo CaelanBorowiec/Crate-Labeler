@@ -379,10 +379,24 @@ textarea::placeholder {
 }
 
 .label-header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-bottom: 12px;
     border-bottom: 2px solid #000;
     margin-bottom: 12px;
+    gap: 12px;
+}
+
+.label-header-text {
+    flex: 1;
+    text-align: left;
+}
+
+.label-header-continuation .label-continuation {
+    text-align: left;
+    padding: 0;
+    margin: 0;
 }
 
 .label-bin-name {
@@ -397,6 +411,10 @@ textarea::placeholder {
     color: #666;
     margin-top: 4px;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.label-header .label-qrcode {
+    flex-shrink: 0;
 }
 
 .label-contents {
@@ -434,25 +452,26 @@ textarea::placeholder {
     flex: 1;
 }
 
-.label-barcode-section {
+.label-qrcode {
+    display: block;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.label-footer {
     text-align: center;
     padding-top: 12px;
     border-top: 2px solid #000;
     margin-top: auto;
 }
 
-.label-barcode {
-    font-family: 'LibreBarcode128', monospace;
-    font-size: 48px;
-    line-height: 1;
-    letter-spacing: 0;
-}
-
 .label-barcode-text {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #666;
-    margin-top: 4px;
+    word-break: break-all;
 }
 
 .label-continuation {
@@ -823,6 +842,33 @@ textarea::placeholder {
     }
 }
 
+/* Share Modal */
+.share-modal-body {
+    text-align: center;
+}
+
+.share-qr-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: white;
+    border-radius: var(--radius-sm);
+    margin: 16px 0;
+}
+
+.share-crate-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.share-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
 /* ============================================
    PRINT STYLES
    ============================================ */
@@ -917,6 +963,7 @@ textarea::placeholder {
     .label-page,
     .label-page *,
     .label-header,
+    .label-header-text,
     .label-bin-name,
     .label-bin-id,
     .label-contents,
@@ -924,13 +971,17 @@ textarea::placeholder {
     .label-item,
     .item-qty,
     .item-name,
-    .label-barcode-section,
-    .label-barcode,
+    .label-footer,
     .label-barcode-text,
     .label-continuation,
     .label-page-indicator {
         color: #000 !important;
         background: white !important;
+    }
+
+    /* Don't override QR code canvas background */
+    .label-qrcode {
+        background: transparent !important;
     }
 
     /* Specific gray text elements */
@@ -952,12 +1003,12 @@ textarea::placeholder {
         border-bottom-color: #000 !important;
     }
 
-    .label-item {
-        border-bottom-color: #ccc !important;
+    .label-footer {
+        border-top-color: #000 !important;
     }
 
-    .label-barcode-section {
-        border-top-color: #000 !important;
+    .label-item {
+        border-bottom-color: #ccc !important;
     }
 
     @page {
