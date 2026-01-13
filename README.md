@@ -178,7 +178,6 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 ## TODO
 
 - [ ] Mobile layout improvements
-- [ ] Capitalization fixes - don't remove caps from proper names like XLR and HDMI
 - [ ] Recall crates with barcodes
 
 ## Future Ideas

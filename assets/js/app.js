@@ -280,9 +280,8 @@ function processVoiceTranscript(transcript) {
   // Remove consecutive duplicate words (common mobile speech recognition issue)
   const deduplicatedTranscript = deduplicateConsecutiveWords(transcript);
 
-  // Normalize and split by "next"
+  // Normalize and split by "next" (preserve capitalization from speech-to-text)
   const normalized = deduplicatedTranscript
-    .toLowerCase()
     .replace(/,?\s*next\s*,?/gi, "\n")
     .replace(/,/g, "\n")
     .trim();
@@ -292,7 +291,7 @@ function processVoiceTranscript(transcript) {
   const parsedItems = [];
 
   for (const line of lines) {
-    const parsed = parseItemLine(line.trim());
+    const parsed = parseItemLine(line.trim(), true); // true = from voice input
     if (parsed) {
       parsedItems.push(`${parsed.quantity} ${parsed.name}`);
     }
@@ -309,9 +308,10 @@ function processVoiceTranscript(transcript) {
   }
 }
 
-function parseItemLine(line) {
+function parseItemLine(line, fromVoiceInput = false) {
   // Try to extract quantity and item name
   // Patterns: "5 hdmi cables", "five hdmi cables", "hdmi cable"
+  // If fromVoiceInput is false, preserve original capitalization
 
   const wordToNum = {
     one: 1,
@@ -340,7 +340,7 @@ function parseItemLine(line) {
   if (numMatch) {
     return {
       quantity: parseInt(numMatch[1]),
-      name: capitalizeWords(numMatch[2]),
+      name: fromVoiceInput ? capitalizeWords(numMatch[2]) : numMatch[2],
     };
   }
 
@@ -348,17 +348,19 @@ function parseItemLine(line) {
   const words = line.split(/\s+/);
   const firstWord = words[0].toLowerCase();
   if (wordToNum[firstWord]) {
+    const remainingText = words.slice(1).join(" ");
     return {
       quantity: wordToNum[firstWord],
-      name: capitalizeWords(words.slice(1).join(" ")),
+      name: fromVoiceInput ? capitalizeWords(remainingText) : remainingText,
     };
   }
 
   // Check for "a" or "an" at start (means 1)
   if (firstWord === "a" || firstWord === "an") {
+    const remainingText = words.slice(1).join(" ");
     return {
       quantity: 1,
-      name: capitalizeWords(words.slice(1).join(" ")),
+      name: fromVoiceInput ? capitalizeWords(remainingText) : remainingText,
     };
   }
 
@@ -366,7 +368,7 @@ function parseItemLine(line) {
   if (line.trim()) {
     return {
       quantity: 1,
-      name: capitalizeWords(line),
+      name: fromVoiceInput ? capitalizeWords(line) : line,
     };
   }
 
@@ -377,6 +379,47 @@ function capitalizeWords(str) {
   return str
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function toTitleCase(str) {
+  // Convert to title case, preserving existing capitalization for acronyms
+  // Small words (of, the, a, an, etc.) stay lowercase unless first word
+  const smallWords = new Set([
+    "of",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "in",
+    "on",
+    "at",
+    "to",
+    "for",
+    "with",
+    "by",
+  ]);
+
+  return str
+    .split(" ")
+    .map((word, index) => {
+      const lowerWord = word.toLowerCase();
+
+      // If word is already all uppercase (likely an acronym), keep it
+      if (word === word.toUpperCase() && word.length > 1) {
+        return word;
+      }
+
+      // Small words stay lowercase unless they're the first word
+      if (index > 0 && smallWords.has(lowerWord)) {
+        return lowerWord;
+      }
+
+      // Otherwise, capitalize first letter, lowercase the rest
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
     .join(" ");
 }
 
@@ -450,7 +493,9 @@ function generateBinId() {
 function getBinFullName() {
   const namespace = binNamespaceInput.value.trim() || "Crate";
   const number = binNumberInput.value || "1";
-  return `${namespace} ${number}`;
+  // Apply title case to namespace for better display
+  const titleCaseNamespace = toTitleCase(namespace);
+  return `${titleCaseNamespace} ${number}`;
 }
 
 function parseContents(text) {
@@ -488,10 +533,11 @@ function generateLabel() {
   }
 
   // Save bin data
+  const namespace = binNamespaceInput.value.trim();
   const binData = {
     id: currentBinId,
     name: binName,
-    namespace: binNamespaceInput.value.trim(),
+    namespace: toTitleCase(namespace), // Save namespace in title case
     number: parseInt(binNumberInput.value) || 1,
     items: items,
     createdAt: new Date().toISOString(),
