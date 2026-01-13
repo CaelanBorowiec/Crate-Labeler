@@ -585,15 +585,27 @@ function renderLabels(binData) {
                   isFirstPage
                     ? `
                     <div class="label-header">
-                        <div class="label-bin-name">${escapeHtml(
-                          binData.name
-                        )}</div>
-                        <div class="label-bin-id">ID: ${binData.id}</div>
+                        <div class="label-header-text">
+                            <div class="label-bin-name">${escapeHtml(
+                              binData.name
+                            )}</div>
+                            <div class="label-bin-id">ID: ${binData.id}</div>
+                        </div>
+                        <div class="label-qrcode" data-url="${escapeHtml(
+                          fullBarcodeUrl
+                        )}"></div>
                     </div>
                 `
                     : `
-                    <div class="label-continuation">
-                        (Continued from ${escapeHtml(binData.name)})
+                    <div class="label-header label-header-continuation">
+                        <div class="label-header-text">
+                            <div class="label-continuation">
+                                (Continued from ${escapeHtml(binData.name)})
+                            </div>
+                        </div>
+                        <div class="label-qrcode" data-url="${escapeHtml(
+                          fullBarcodeUrl
+                        )}"></div>
                     </div>
                 `
                 }
@@ -614,27 +626,18 @@ function renderLabels(binData) {
                       .join("")}
                 </div>
 
-                <div class="label-barcode-section">
-                    <div class="qr-container">
-                        <div class="label-qrcode" data-url="${escapeHtml(
-                          fullBarcodeUrl
-                        )}"></div>
-                        <div class="label-qr-label">Scan to View</div>
-                    </div>
+                <div class="label-footer">
                     <div class="label-barcode-text">${escapeHtml(
                       fullBarcodeUrl
                     )}</div>
+                    ${
+                      totalPages > 1
+                        ? `<div class="label-page-indicator">Page ${
+                            pageIndex + 1
+                          } of ${totalPages}</div>`
+                        : ""
+                    }
                 </div>
-
-                ${
-                  totalPages > 1
-                    ? `
-                    <div class="label-page-indicator">Page ${
-                      pageIndex + 1
-                    } of ${totalPages}</div>
-                `
-                    : ""
-                }
             </div>
         `;
   });
@@ -661,8 +664,8 @@ function generateQRCodes(url) {
     try {
       new QRCode(container, {
         text: urlToEncode,
-        width: 120,
-        height: 120,
+        width: 80,
+        height: 80,
         colorDark: "#000000",
         colorLight: "#FFFFFF",
         correctLevel: QRCode.CorrectLevel.M,

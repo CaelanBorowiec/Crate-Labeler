@@ -379,10 +379,24 @@ textarea::placeholder {
 }
 
 .label-header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-bottom: 12px;
     border-bottom: 2px solid #000;
     margin-bottom: 12px;
+    gap: 12px;
+}
+
+.label-header-text {
+    flex: 1;
+    text-align: left;
+}
+
+.label-header-continuation .label-continuation {
+    text-align: left;
+    padding: 0;
+    margin: 0;
 }
 
 .label-bin-name {
@@ -397,6 +411,10 @@ textarea::placeholder {
     color: #666;
     margin-top: 4px;
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.label-header .label-qrcode {
+    flex-shrink: 0;
 }
 
 .label-contents {
@@ -434,24 +452,6 @@ textarea::placeholder {
     flex: 1;
 }
 
-.label-barcode-section {
-    text-align: center;
-    padding-top: 12px;
-    border-top: 2px solid #000;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.qr-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
 .label-qrcode {
     display: block;
     image-rendering: -moz-crisp-edges;
@@ -460,18 +460,17 @@ textarea::placeholder {
     image-rendering: crisp-edges;
 }
 
-.label-qr-label {
-    font-size: 0.65rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.label-footer {
+    text-align: center;
+    padding-top: 12px;
+    border-top: 2px solid #000;
+    margin-top: auto;
 }
 
 .label-barcode-text {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #666;
-    margin-top: 4px;
     word-break: break-all;
 }
 
@@ -937,6 +936,7 @@ textarea::placeholder {
     .label-page,
     .label-page *,
     .label-header,
+    .label-header-text,
     .label-bin-name,
     .label-bin-id,
     .label-contents,
@@ -944,10 +944,8 @@ textarea::placeholder {
     .label-item,
     .item-qty,
     .item-name,
-    .label-barcode-section,
+    .label-footer,
     .label-barcode-text,
-    .qr-container,
-    .label-qr-label,
     .label-continuation,
     .label-page-indicator {
         color: #000 !important;
@@ -961,8 +959,7 @@ textarea::placeholder {
 
     /* Specific gray text elements */
     .label-bin-id,
-    .label-barcode-text,
-    .label-qr-label {
+    .label-barcode-text {
         color: #666 !important;
     }
 
@@ -979,12 +976,12 @@ textarea::placeholder {
         border-bottom-color: #000 !important;
     }
 
-    .label-item {
-        border-bottom-color: #ccc !important;
+    .label-footer {
+        border-top-color: #000 !important;
     }
 
-    .label-barcode-section {
-        border-top-color: #000 !important;
+    .label-item {
+        border-bottom-color: #ccc !important;
     }
 
     @page {
