@@ -99,13 +99,16 @@ cd Crate-Packer
 
 ```
 Crate-Packer/
-├── index.html          # Main application (single-file app)
-├── README.md           # This file
+├── index.html              # Main HTML structure
+├── README.md               # This file
 └── assets/
+    ├── css/
+    │   └── styles.css      # Application styles
     ├── fonts/
     │   ├── LibreBarcode128-Regular.ttf   # Barcode font
     │   └── LibreBarcode39-Regular.ttf    # Alternative barcode font
     └── js/
+        ├── app.js                        # Application logic
         ├── html2canvas.min.js            # Screenshot library for PDF
         └── jspdf.umd.min.js              # PDF generation library
 ```
@@ -143,7 +146,7 @@ Labels are optimized for **4" × 6" thermal label printers** (common shipping la
 
 ### Changing Label Size
 
-Modify the `.label-page` CSS class in `index.html`:
+Modify the `.label-page` CSS class in `assets/css/styles.css`:
 
 ```css
 .label-page {
@@ -164,7 +167,7 @@ Also update the `@page` rule in print styles:
 
 ### Changing Barcode Type
 
-The app uses Code 128 barcodes via the LibreBarcode font. To use Code 39 instead, change:
+The app uses Code 128 barcodes via the LibreBarcode font. To use Code 39 instead, change in `assets/css/styles.css`:
 
 ```css
 .label-barcode {

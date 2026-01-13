@@ -1,1461 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bin Inventory Labeler</title>
-    <style>
-        /* Self-contained fonts - using system fonts with good fallbacks */
-        @font-face {
-            font-family: "LibreBarcode128";
-            src: url("assets/fonts/LibreBarcode128-Regular.ttf") format("truetype");
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        @font-face {
-            font-family: "LibreBarcode39";
-            src: url("assets/fonts/LibreBarcode39-Regular.ttf") format("truetype");
-            font-weight: normal;
-            font-style: normal;
-        }
-
-        :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --border-color: #30363d;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --text-muted: #6e7681;
-            --accent-green: #3fb950;
-            --accent-green-dim: #238636;
-            --accent-blue: #58a6ff;
-            --accent-orange: #d29922;
-            --accent-red: #f85149;
-            --accent-purple: #a371f7;
-            --shadow: 0 8px 32px rgba(0,0,0,0.4);
-            --radius: 12px;
-            --radius-sm: 8px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            background-image:
-                radial-gradient(ellipse at 20% 20%, rgba(63, 185, 80, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(88, 166, 255, 0.06) 0%, transparent 50%);
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 32px;
-            padding: 24px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-        }
-
-        .panel-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .panel-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
-
-        .panel-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="url"] {
-            width: 100%;
-            padding: 12px 16px;
-            font-family: inherit;
-            font-size: 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.15);
-        }
-
-        input::placeholder {
-            color: var(--text-muted);
-        }
-
-        textarea {
-            width: 100%;
-            padding: 16px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 0.9rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            resize: vertical;
-            min-height: 200px;
-            line-height: 1.6;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--accent-green);
-            box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.15);
-        }
-
-        textarea::placeholder {
-            color: var(--text-muted);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            font-family: inherit;
-            font-size: 0.9375rem;
-            font-weight: 600;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--accent-green-dim);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-green);
-        }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border-color);
-        }
-
-        .btn-danger {
-            background: rgba(248, 81, 73, 0.15);
-            color: var(--accent-red);
-            border: 1px solid var(--accent-red);
-        }
-
-        .btn-danger:hover {
-            background: var(--accent-red);
-            color: white;
-        }
-
-        .btn-voice {
-            background: var(--accent-purple);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-voice:hover {
-            background: #915bea;
-        }
-
-        .btn-voice.listening {
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(163, 113, 247, 0.6); }
-            50% { box-shadow: 0 0 0 12px rgba(163, 113, 247, 0); }
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn-icon {
-            padding: 12px;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-        }
-
-        .input-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .voice-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border-radius: var(--radius-sm);
-            margin-bottom: 16px;
-            font-size: 0.875rem;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .status-dot.active {
-            background: var(--accent-green);
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .voice-transcript {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 0.85rem;
-            padding: 12px;
-            background: rgba(163, 113, 247, 0.1);
-            border: 1px solid rgba(163, 113, 247, 0.3);
-            border-radius: var(--radius-sm);
-            color: var(--accent-purple);
-            margin-bottom: 16px;
-            min-height: 60px;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        /* Label Preview */
-        .label-preview-container {
-            background: white;
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            margin-top: 16px;
-        }
-
-        .label-preview {
-            width: 100%;
-            min-height: 400px;
-            background: white;
-            padding: 0;
-        }
-
-        .label-page {
-            width: 4in;
-            min-height: 6in;
-            background: white;
-            color: #000;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 0.25in;
-            margin: 16px auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            page-break-after: always;
-        }
-
-        .label-page:last-child {
-            page-break-after: avoid;
-        }
-
-        .label-header {
-            text-align: center;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #000;
-            margin-bottom: 12px;
-        }
-
-        .label-bin-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .label-bin-id {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 4px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-
-        .label-contents {
-            flex: 1;
-            padding: 8px 0;
-        }
-
-        .label-contents-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            color: #333;
-        }
-
-        .label-item {
-            font-size: 1rem;
-            padding: 4px 0;
-            border-bottom: 1px dotted #ccc;
-            display: flex;
-            align-items: baseline;
-        }
-
-        .label-item:last-child {
-            border-bottom: none;
-        }
-
-        .item-qty {
-            font-weight: 700;
-            min-width: 50px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-
-        .item-name {
-            flex: 1;
-        }
-
-        .label-barcode-section {
-            text-align: center;
-            padding-top: 12px;
-            border-top: 2px solid #000;
-            margin-top: auto;
-        }
-
-        .label-barcode {
-            font-family: 'LibreBarcode128', monospace;
-            font-size: 48px;
-            line-height: 1;
-            letter-spacing: 0;
-        }
-
-        .label-barcode-text {
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 0.7rem;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .label-continuation {
-            text-align: center;
-            font-style: italic;
-            color: #666;
-            font-size: 0.75rem;
-            padding: 8px 0;
-        }
-
-        .label-page-indicator {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #999;
-            margin-top: 8px;
-        }
-
-        /* Saved Bins */
-        .saved-bins {
-            margin-top: 24px;
-        }
-
-        .saved-bins-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .bins-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .bin-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .bin-card:hover {
-            border-color: var(--accent-green);
-            background: rgba(63, 185, 80, 0.05);
-        }
-
-        .bin-card-info {
-            flex: 1;
-        }
-
-        .bin-card-name {
-            font-weight: 600;
-            font-size: 0.9375rem;
-        }
-
-        .bin-card-meta {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        }
-
-        .bin-card-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .bin-card-btn {
-            padding: 6px 10px;
-            font-size: 0.75rem;
-            border-radius: 6px;
-        }
-
-        /* Settings Panel */
-        .settings-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        @media (max-width: 600px) {
-            .settings-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .toast {
-            padding: 14px 20px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow);
-            animation: slideIn 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.success {
-            border-color: var(--accent-green);
-            background: rgba(63, 185, 80, 0.1);
-        }
-
-        .toast.error {
-            border-color: var(--accent-red);
-            background: rgba(248, 81, 73, 0.1);
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        /* Print Styles */
-        @media print {
-            body {
-                background: white !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-
-            .container, header, .panel:not(.print-panel), .toast-container {
-                display: none !important;
-            }
-
-            .label-preview-container {
-                box-shadow: none !important;
-                border: none !important;
-            }
-
-            .label-page {
-                box-shadow: none !important;
-                margin: 0 !important;
-                page-break-after: always !important;
-            }
-
-            .label-page:last-child {
-                page-break-after: avoid !important;
-            }
-
-            @page {
-                size: 4in 6in;
-                margin: 0;
-            }
-        }
-
-        /* Helpers */
-        .text-muted {
-            color: var(--text-muted);
-        }
-
-        .mt-16 {
-            margin-top: 16px;
-        }
-
-        .mb-8 {
-            margin-bottom: 8px;
-        }
-
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Counter badge */
-        .counter-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 24px;
-            height: 24px;
-            padding: 0 8px;
-            background: var(--accent-green-dim);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 12px;
-        }
-
-        /* Hint text */
-        .hint {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-        }
-
-        /* Settings toggle */
-        .settings-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .toggle-track {
-            width: 44px;
-            height: 24px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            position: relative;
-            transition: all 0.2s;
-        }
-
-        .toggle-track.active {
-            background: var(--accent-green-dim);
-            border-color: var(--accent-green);
-        }
-
-        .toggle-thumb {
-            width: 18px;
-            height: 18px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: all 0.2s;
-        }
-
-        .toggle-track.active .toggle-thumb {
-            left: 22px;
-        }
-    </style>
-</head>
-<body>
+    <link rel="stylesheet" href="assets/css/styles.css" />
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>📦 Bin Inventory Labeler</h1>
-            <p class="subtitle">Create printable labels for storage bins with voice or text input</p>
-        </header>
+      <header>
+        <h1>📦 Bin Inventory Labeler</h1>
+        <p class="subtitle">
+          Create printable labels for storage bins with voice or text input
+        </p>
+      </header>
 
-        <div class="main-grid">
-            <!-- Input Panel -->
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-icon">📝</div>
-                    <h2 class="panel-title">Bin Contents</h2>
-                </div>
+      <div class="main-grid">
+        <!-- Input Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-icon">📝</div>
+            <h2 class="panel-title">Bin Contents</h2>
+          </div>
 
-                <div class="input-row mb-8">
-                    <div class="form-group">
-                        <label for="binNamespace">Bin Namespace</label>
-                        <input type="text" id="binNamespace" placeholder="e.g., Audio Gear, Power Supplies">
-                    </div>
-                    <div class="form-group" style="flex: 0 0 100px;">
-                        <label for="binNumber">Number</label>
-                        <input type="number" id="binNumber" min="1" value="1">
-                    </div>
-                </div>
+          <div class="input-row mb-8">
+            <div class="form-group">
+              <label for="binNamespace">Bin Namespace</label>
+              <input
+                type="text"
+                id="binNamespace"
+                placeholder="e.g., Audio Gear, Power Supplies"
+              />
+            </div>
+            <div class="form-group" style="flex: 0 0 100px">
+              <label for="binNumber">Number</label>
+              <input type="number" id="binNumber" min="1" value="1" />
+            </div>
+          </div>
 
-                <div class="form-group">
-                    <label for="contentsInput">Contents (format: quantity name)</label>
-                    <textarea id="contentsInput" placeholder="1 HDMI Cable 6ft
+          <div class="form-group">
+            <label for="contentsInput">Contents (format: quantity name)</label>
+            <textarea
+              id="contentsInput"
+              placeholder="1 HDMI Cable 6ft
 5 USB-C Adapter
 2 Power Strip
 3 Extension Cord 10ft
 
-Enter each item on a new line..."></textarea>
-                    <p class="hint">Format: [quantity] [item name] — one per line</p>
-                </div>
+Enter each item on a new line..."
+            ></textarea>
+            <p class="hint">Format: [quantity] [item name] — one per line</p>
+          </div>
 
-                <!-- Voice Input Section -->
-                <div class="voice-status">
-                    <span class="status-dot" id="voiceStatusDot"></span>
-                    <span id="voiceStatusText">Voice input ready</span>
-                </div>
+          <!-- Voice Input Section -->
+          <div class="voice-status">
+            <span class="status-dot" id="voiceStatusDot"></span>
+            <span id="voiceStatusText">Voice input ready</span>
+          </div>
 
-                <div class="voice-transcript" id="voiceTranscript">
-                    <em>Voice transcript will appear here...</em>
-                </div>
+          <div class="voice-transcript" id="voiceTranscript">
+            <em>Voice transcript will appear here...</em>
+          </div>
 
-                <div class="btn-group">
-                    <button class="btn btn-voice" id="voiceBtn">
-                        🎤 Start Voice Input
-                    </button>
-                    <button class="btn btn-secondary" id="clearVoiceBtn">
-                        Clear Transcript
-                    </button>
-                </div>
+          <div class="btn-group">
+            <button class="btn btn-voice" id="voiceBtn">
+              🎤 Start Voice Input
+            </button>
+            <button class="btn btn-secondary" id="clearVoiceBtn">
+              Clear Transcript
+            </button>
+          </div>
 
-                <p class="hint mt-16">💡 Say "next" to start a new line. Example: "5 HDMI cables, next, 3 power strips"</p>
+          <p class="hint mt-16">
+            💡 Say "next" to start a new line. Example: "5 HDMI cables, next, 3
+            power strips"
+          </p>
 
-                <!-- Action Buttons -->
-                <div class="btn-group mt-16">
-                    <button class="btn btn-primary" id="generateBtn">
-                        🏷️ Generate Label
-                    </button>
-                    <button class="btn btn-secondary" id="nextBinBtn">
-                        ➡️ Next Bin
-                    </button>
-                    <button class="btn btn-danger" id="clearAllBtn">
-                        🗑️ Clear
-                    </button>
-                </div>
+          <!-- Action Buttons -->
+          <div class="btn-group mt-16">
+            <button class="btn btn-primary" id="generateBtn">
+              🏷️ Generate Label
+            </button>
+            <button class="btn btn-secondary" id="nextBinBtn">
+              ➡️ Next Bin
+            </button>
+            <button class="btn btn-danger" id="clearAllBtn">🗑️ Clear</button>
+          </div>
 
-                <!-- Saved Bins -->
-                <div class="saved-bins">
-                    <div class="saved-bins-header">
-                        <h3 style="font-size: 1rem;">Saved Bins</h3>
-                        <span class="counter-badge" id="binCount">0</span>
-                    </div>
-                    <div class="bins-list" id="binsList">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📦</div>
-                            <p>No bins saved yet</p>
-                        </div>
-                    </div>
-                </div>
+          <!-- Saved Bins -->
+          <div class="saved-bins">
+            <div class="saved-bins-header">
+              <h3 style="font-size: 1rem">Saved Bins</h3>
+              <span class="counter-badge" id="binCount">0</span>
             </div>
-
-            <!-- Preview Panel -->
-            <div class="panel print-panel">
-                <div class="panel-header">
-                    <div class="panel-icon">🖨️</div>
-                    <h2 class="panel-title">Label Preview</h2>
-                </div>
-
-                <!-- Settings -->
-                <div class="settings-row mb-8">
-                    <div class="form-group">
-                        <label for="barcodeUrl">Barcode Base URL</label>
-                        <input type="url" id="barcodeUrl" placeholder="https://example.com/bin/">
-                        <p class="hint">Bin ID will be appended to this URL</p>
-                    </div>
-                    <div class="form-group">
-                        <label for="itemsPerPage">Items Per Label</label>
-                        <input type="number" id="itemsPerPage" min="1" max="20" value="10">
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button class="btn btn-primary" id="printBtn">
-                        🖨️ Print Labels
-                    </button>
-                    <button class="btn btn-secondary" id="downloadPdfBtn">
-                        📄 Download PDF
-                    </button>
-                </div>
-
-                <div class="label-preview-container mt-16">
-                    <div class="label-preview" id="labelPreview">
-                        <div class="empty-state" style="color: #666;">
-                            <div class="empty-state-icon">🏷️</div>
-                            <p>Enter contents and click "Generate Label" to preview</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="bins-list" id="binsList">
+              <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <p>No bins saved yet</p>
+              </div>
             </div>
+          </div>
         </div>
+
+        <!-- Preview Panel -->
+        <div class="panel print-panel">
+          <div class="panel-header">
+            <div class="panel-icon">🖨️</div>
+            <h2 class="panel-title">Label Preview</h2>
+          </div>
+
+          <!-- Settings -->
+          <div class="settings-row mb-8">
+            <div class="form-group">
+              <label for="barcodeUrl">Barcode Base URL</label>
+              <input
+                type="url"
+                id="barcodeUrl"
+                placeholder="https://example.com/bin/"
+              />
+              <p class="hint">Bin ID will be appended to this URL</p>
+            </div>
+            <div class="form-group">
+              <label for="itemsPerPage">Items Per Label</label>
+              <input
+                type="number"
+                id="itemsPerPage"
+                min="1"
+                max="20"
+                value="10"
+              />
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="printBtn">
+              🖨️ Print Labels
+            </button>
+            <button class="btn btn-secondary" id="downloadPdfBtn">
+              📄 Download PDF
+            </button>
+          </div>
+
+          <div class="label-preview-container mt-16">
+            <div class="label-preview" id="labelPreview">
+              <div class="empty-state" style="color: #666">
+                <div class="empty-state-icon">🏷️</div>
+                <p>Enter contents and click "Generate Label" to preview</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Load local jsPDF for PDF generation (self-contained) -->
+    <!-- External Libraries -->
     <script src="assets/js/jspdf.umd.min.js"></script>
     <script src="assets/js/html2canvas.min.js"></script>
 
-    <script>
-        // ============================================
-        // BIN INVENTORY LABELER APPLICATION
-        // ============================================
-
-        const STORAGE_KEY = 'binInventory';
-        const SETTINGS_KEY = 'binInventorySettings';
-
-        // State
-        let currentBinId = null;
-        let isListening = false;
-        let recognition = null;
-        let accumulatedTranscript = '';
-
-        // DOM Elements
-        const binNamespaceInput = document.getElementById('binNamespace');
-        const binNumberInput = document.getElementById('binNumber');
-        const contentsInput = document.getElementById('contentsInput');
-        const voiceBtn = document.getElementById('voiceBtn');
-        const clearVoiceBtn = document.getElementById('clearVoiceBtn');
-        const voiceTranscript = document.getElementById('voiceTranscript');
-        const voiceStatusDot = document.getElementById('voiceStatusDot');
-        const voiceStatusText = document.getElementById('voiceStatusText');
-        const generateBtn = document.getElementById('generateBtn');
-        const nextBinBtn = document.getElementById('nextBinBtn');
-        const clearAllBtn = document.getElementById('clearAllBtn');
-        const labelPreview = document.getElementById('labelPreview');
-        const binsList = document.getElementById('binsList');
-        const binCount = document.getElementById('binCount');
-        const barcodeUrlInput = document.getElementById('barcodeUrl');
-        const itemsPerPageInput = document.getElementById('itemsPerPage');
-        const printBtn = document.getElementById('printBtn');
-        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-
-        function init() {
-            loadSettings();
-            loadBins();
-            setupSpeechRecognition();
-            setupEventListeners();
-        }
-
-        function loadSettings() {
-            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-            barcodeUrlInput.value = settings.barcodeUrl || 'https://inventory.example.com/bin/';
-            itemsPerPageInput.value = settings.itemsPerPage || 10;
-        }
-
-        function saveSettings() {
-            const settings = {
-                barcodeUrl: barcodeUrlInput.value,
-                itemsPerPage: parseInt(itemsPerPageInput.value) || 10
-            };
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        }
-
-        function loadBins() {
-            const bins = getBins();
-            updateBinsList(bins);
-        }
-
-        function getBins() {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        }
-
-        function saveBin(binId, binData) {
-            const bins = getBins();
-            bins[binId] = binData;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(bins));
-            updateBinsList(bins);
-        }
-
-        function deleteBin(binId) {
-            const bins = getBins();
-            delete bins[binId];
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(bins));
-            updateBinsList(bins);
-        }
-
-        // ============================================
-        // SPEECH RECOGNITION
-        // ============================================
-
-        function setupSpeechRecognition() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-            if (!SpeechRecognition) {
-                voiceBtn.disabled = true;
-                voiceStatusText.textContent = 'Speech recognition not supported in this browser';
-                showToast('Speech recognition not supported. Try Chrome or Edge.', 'error');
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                isListening = true;
-                voiceBtn.classList.add('listening');
-                voiceBtn.textContent = '🛑 Stop Listening';
-                voiceStatusDot.classList.add('active');
-                voiceStatusText.textContent = 'Listening... Say items or "next" to separate lines';
-            };
-
-            recognition.onend = () => {
-                isListening = false;
-                voiceBtn.classList.remove('listening');
-                voiceBtn.textContent = '🎤 Start Voice Input';
-                voiceStatusDot.classList.remove('active');
-                voiceStatusText.textContent = 'Voice input stopped';
-
-                // Process final transcript
-                if (accumulatedTranscript.trim()) {
-                    processVoiceTranscript(accumulatedTranscript);
-                }
-            };
-
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript += transcript;
-                    } else {
-                        interimTranscript += transcript;
-                    }
-                }
-
-                if (finalTranscript) {
-                    accumulatedTranscript += finalTranscript + ' ';
-                }
-
-                // Display current transcript
-                const displayText = accumulatedTranscript + '<span style="color: #8b949e;">' + interimTranscript + '</span>';
-                voiceTranscript.innerHTML = displayText || '<em>Listening...</em>';
-            };
-
-            recognition.onerror = (event) => {
-                console.error('Speech recognition error:', event.error);
-                voiceStatusText.textContent = 'Error: ' + event.error;
-
-                if (event.error === 'not-allowed') {
-                    showToast('Microphone access denied. Please allow microphone access.', 'error');
-                }
-            };
-        }
-
-        function toggleVoiceInput() {
-            if (!recognition) {
-                showToast('Speech recognition not available', 'error');
-                return;
-            }
-
-            if (isListening) {
-                recognition.stop();
-            } else {
-                accumulatedTranscript = '';
-                voiceTranscript.innerHTML = '<em>Listening...</em>';
-                recognition.start();
-            }
-        }
-
-        function clearVoiceTranscript() {
-            accumulatedTranscript = '';
-            voiceTranscript.innerHTML = '<em>Voice transcript will appear here...</em>';
-        }
-
-        function processVoiceTranscript(transcript) {
-            // Normalize and split by "next"
-            const normalized = transcript
-                .toLowerCase()
-                .replace(/,?\s*next\s*,?/gi, '\n')
-                .replace(/,/g, '\n')
-                .trim();
-
-            // Parse each line
-            const lines = normalized.split('\n').filter(line => line.trim());
-            const parsedItems = [];
-
-            for (const line of lines) {
-                const parsed = parseItemLine(line.trim());
-                if (parsed) {
-                    parsedItems.push(`${parsed.quantity} ${parsed.name}`);
-                }
-            }
-
-            // Add to contents input
-            if (parsedItems.length > 0) {
-                const currentContent = contentsInput.value.trim();
-                const newContent = currentContent
-                    ? currentContent + '\n' + parsedItems.join('\n')
-                    : parsedItems.join('\n');
-                contentsInput.value = newContent;
-                showToast(`Added ${parsedItems.length} items from voice input`, 'success');
-            }
-        }
-
-        function parseItemLine(line) {
-            // Try to extract quantity and item name
-            // Patterns: "5 hdmi cables", "five hdmi cables", "hdmi cable"
-
-            const wordToNum = {
-                'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
-                'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
-                'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
-                'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50
-            };
-
-            // Check for number at start
-            const numMatch = line.match(/^(\d+)\s+(.+)$/);
-            if (numMatch) {
-                return {
-                    quantity: parseInt(numMatch[1]),
-                    name: capitalizeWords(numMatch[2])
-                };
-            }
-
-            // Check for word number at start
-            const words = line.split(/\s+/);
-            const firstWord = words[0].toLowerCase();
-            if (wordToNum[firstWord]) {
-                return {
-                    quantity: wordToNum[firstWord],
-                    name: capitalizeWords(words.slice(1).join(' '))
-                };
-            }
-
-            // Check for "a" or "an" at start (means 1)
-            if (firstWord === 'a' || firstWord === 'an') {
-                return {
-                    quantity: 1,
-                    name: capitalizeWords(words.slice(1).join(' '))
-                };
-            }
-
-            // Default to quantity 1
-            if (line.trim()) {
-                return {
-                    quantity: 1,
-                    name: capitalizeWords(line)
-                };
-            }
-
-            return null;
-        }
-
-        function capitalizeWords(str) {
-            return str.split(' ')
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                .join(' ');
-        }
-
-        // ============================================
-        // BIN MANAGEMENT
-        // ============================================
-
-        function generateBinId() {
-            return 'BIN-' + Date.now().toString(36).toUpperCase() + '-' +
-                   Math.random().toString(36).substring(2, 6).toUpperCase();
-        }
-
-        function getBinFullName() {
-            const namespace = binNamespaceInput.value.trim() || 'Bin';
-            const number = binNumberInput.value || '1';
-            return `${namespace} ${number}`;
-        }
-
-        function parseContents(text) {
-            const lines = text.split('\n').filter(line => line.trim());
-            const items = [];
-
-            for (const line of lines) {
-                const parsed = parseItemLine(line);
-                if (parsed) {
-                    items.push(parsed);
-                }
-            }
-
-            return items;
-        }
-
-        function generateLabel() {
-            const binName = getBinFullName();
-            const contents = contentsInput.value.trim();
-
-            if (!contents) {
-                showToast('Please enter bin contents first', 'error');
-                return;
-            }
-
-            const items = parseContents(contents);
-            if (items.length === 0) {
-                showToast('Could not parse any items from contents', 'error');
-                return;
-            }
-
-            // Generate or reuse bin ID
-            if (!currentBinId) {
-                currentBinId = generateBinId();
-            }
-
-            // Save bin data
-            const binData = {
-                id: currentBinId,
-                name: binName,
-                namespace: binNamespaceInput.value.trim(),
-                number: parseInt(binNumberInput.value) || 1,
-                items: items,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-
-            saveBin(currentBinId, binData);
-            saveSettings();
-
-            // Render labels
-            renderLabels(binData);
-
-            showToast('Label generated successfully!', 'success');
-        }
-
-        function renderLabels(binData) {
-            const itemsPerPage = parseInt(itemsPerPageInput.value) || 10;
-            const barcodeUrl = barcodeUrlInput.value || '';
-            const fullBarcodeUrl = barcodeUrl + binData.id;
-
-            // Split items into pages
-            const pages = [];
-            for (let i = 0; i < binData.items.length; i += itemsPerPage) {
-                pages.push(binData.items.slice(i, i + itemsPerPage));
-            }
-
-            // Ensure at least one page
-            if (pages.length === 0) {
-                pages.push([]);
-            }
-
-            let html = '';
-
-            pages.forEach((pageItems, pageIndex) => {
-                const isFirstPage = pageIndex === 0;
-                const totalPages = pages.length;
-
-                html += `
-                    <div class="label-page" data-page="${pageIndex + 1}">
-                        ${isFirstPage ? `
-                            <div class="label-header">
-                                <div class="label-bin-name">${escapeHtml(binData.name)}</div>
-                                <div class="label-bin-id">ID: ${binData.id}</div>
-                            </div>
-                        ` : `
-                            <div class="label-continuation">
-                                (Continued from ${escapeHtml(binData.name)})
-                            </div>
-                        `}
-
-                        <div class="label-contents">
-                            <div class="label-contents-title">Contents:</div>
-                            ${pageItems.map(item => `
-                                <div class="label-item">
-                                    <span class="item-qty">${item.quantity}x</span>
-                                    <span class="item-name">${escapeHtml(item.name)}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div class="label-barcode-section">
-                            <div class="label-barcode">${binData.id}</div>
-                            <div class="label-barcode-text">${escapeHtml(fullBarcodeUrl)}</div>
-                        </div>
-
-                        ${totalPages > 1 ? `
-                            <div class="label-page-indicator">Page ${pageIndex + 1} of ${totalPages}</div>
-                        ` : ''}
-                    </div>
-                `;
-            });
-
-            labelPreview.innerHTML = html;
-        }
-
-        function nextBin() {
-            // Increment bin number
-            const currentNumber = parseInt(binNumberInput.value) || 1;
-            binNumberInput.value = currentNumber + 1;
-
-            // Clear contents and reset bin ID
-            contentsInput.value = '';
-            currentBinId = null;
-            clearVoiceTranscript();
-
-            // Clear preview
-            labelPreview.innerHTML = `
-                <div class="empty-state" style="color: #666;">
-                    <div class="empty-state-icon">🏷️</div>
-                    <p>Ready for ${getBinFullName()}</p>
-                </div>
-            `;
-
-            showToast(`Ready for ${getBinFullName()}`, 'success');
-        }
-
-        function clearAll() {
-            contentsInput.value = '';
-            currentBinId = null;
-            clearVoiceTranscript();
-
-            labelPreview.innerHTML = `
-                <div class="empty-state" style="color: #666;">
-                    <div class="empty-state-icon">🏷️</div>
-                    <p>Enter contents and click "Generate Label" to preview</p>
-                </div>
-            `;
-        }
-
-        function loadBinToEditor(binId) {
-            const bins = getBins();
-            const bin = bins[binId];
-
-            if (!bin) {
-                showToast('Bin not found', 'error');
-                return;
-            }
-
-            currentBinId = bin.id;
-            binNamespaceInput.value = bin.namespace || '';
-            binNumberInput.value = bin.number || 1;
-
-            // Convert items back to text
-            const contentsText = bin.items
-                .map(item => `${item.quantity} ${item.name}`)
-                .join('\n');
-            contentsInput.value = contentsText;
-
-            // Render the label
-            renderLabels(bin);
-
-            showToast(`Loaded ${bin.name}`, 'success');
-        }
-
-        function updateBinsList(bins) {
-            const binIds = Object.keys(bins);
-            binCount.textContent = binIds.length;
-
-            if (binIds.length === 0) {
-                binsList.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📦</div>
-                        <p>No bins saved yet</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Sort by updated date, newest first
-            const sortedBins = binIds
-                .map(id => bins[id])
-                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-
-            binsList.innerHTML = sortedBins.map(bin => `
-                <div class="bin-card" onclick="loadBinToEditor('${bin.id}')">
-                    <div class="bin-card-info">
-                        <div class="bin-card-name">${escapeHtml(bin.name)}</div>
-                        <div class="bin-card-meta">${bin.id} • ${bin.items.length} items</div>
-                    </div>
-                    <div class="bin-card-actions">
-                        <button class="btn btn-secondary bin-card-btn" onclick="event.stopPropagation(); printSingleBin('${bin.id}')">
-                            🖨️
-                        </button>
-                        <button class="btn btn-danger bin-card-btn" onclick="event.stopPropagation(); confirmDeleteBin('${bin.id}')">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function confirmDeleteBin(binId) {
-            if (confirm('Are you sure you want to delete this bin?')) {
-                deleteBin(binId);
-
-                // Clear editor if this was the current bin
-                if (currentBinId === binId) {
-                    clearAll();
-                    currentBinId = null;
-                }
-
-                showToast('Bin deleted', 'success');
-            }
-        }
-
-        function printSingleBin(binId) {
-            const bins = getBins();
-            const bin = bins[binId];
-            if (bin) {
-                renderLabels(bin);
-                setTimeout(() => window.print(), 100);
-            }
-        }
-
-        // ============================================
-        // PRINT & PDF
-        // ============================================
-
-        function printLabels() {
-            if (labelPreview.querySelector('.empty-state')) {
-                showToast('Generate a label first', 'error');
-                return;
-            }
-            window.print();
-        }
-
-        async function downloadPdf() {
-            if (labelPreview.querySelector('.empty-state')) {
-                showToast('Generate a label first', 'error');
-                return;
-            }
-
-            showToast('Generating PDF...', 'success');
-
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'in',
-                format: [4, 6]
-            });
-
-            const labelPages = labelPreview.querySelectorAll('.label-page');
-
-            for (let i = 0; i < labelPages.length; i++) {
-                const page = labelPages[i];
-
-                // Temporarily add to body for capture
-                const clone = page.cloneNode(true);
-                clone.style.position = 'absolute';
-                clone.style.left = '-9999px';
-                clone.style.width = '4in';
-                clone.style.height = '6in';
-                document.body.appendChild(clone);
-
-                try {
-                    const canvas = await html2canvas(clone, {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff'
-                    });
-
-                    if (i > 0) {
-                        pdf.addPage([4, 6], 'portrait');
-                    }
-
-                    const imgData = canvas.toDataURL('image/png');
-                    pdf.addImage(imgData, 'PNG', 0, 0, 4, 6);
-                } finally {
-                    document.body.removeChild(clone);
-                }
-            }
-
-            // Get bin name for filename
-            const binName = getBinFullName().replace(/\s+/g, '_');
-            pdf.save(`${binName}_labels.pdf`);
-
-            showToast('PDF downloaded!', 'success');
-        }
-
-        // ============================================
-        // UTILITIES
-        // ============================================
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <span>${type === 'success' ? '✓' : '✕'}</span>
-                <span>${message}</span>
-            `;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-
-        function setupEventListeners() {
-            voiceBtn.addEventListener('click', toggleVoiceInput);
-            clearVoiceBtn.addEventListener('click', clearVoiceTranscript);
-            generateBtn.addEventListener('click', generateLabel);
-            nextBinBtn.addEventListener('click', nextBin);
-            clearAllBtn.addEventListener('click', clearAll);
-            printBtn.addEventListener('click', printLabels);
-            downloadPdfBtn.addEventListener('click', downloadPdf);
-
-            // Auto-save settings on change
-            barcodeUrlInput.addEventListener('change', saveSettings);
-            itemsPerPageInput.addEventListener('change', saveSettings);
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', (e) => {
-                // Ctrl/Cmd + Enter to generate
-                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    generateLabel();
-                }
-                // Ctrl/Cmd + P to print
-                if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-                    if (!labelPreview.querySelector('.empty-state')) {
-                        // Let default print behavior handle it
-                    }
-                }
-            });
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
+    <!-- Application Script -->
+    <script src="assets/js/app.js"></script>
+  </body>
 </html>
