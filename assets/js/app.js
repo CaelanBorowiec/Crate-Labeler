@@ -615,7 +615,16 @@ function renderLabels(binData) {
                 </div>
 
                 <div class="label-barcode-section">
-                    <div class="label-barcode">${binData.id}</div>
+                    <div class="barcode-container">
+                        <div class="label-barcode">${binData.id}</div>
+                        <div class="label-barcode-label">Barcode ID</div>
+                    </div>
+                    <div class="qr-container">
+                        <canvas class="label-qrcode" data-url="${escapeHtml(
+                          fullBarcodeUrl
+                        )}"></canvas>
+                        <div class="label-qr-label">Scan to View</div>
+                    </div>
                     <div class="label-barcode-text">${escapeHtml(
                       fullBarcodeUrl
                     )}</div>
@@ -635,6 +644,35 @@ function renderLabels(binData) {
   });
 
   labelPreview.innerHTML = html;
+
+  // Generate QR codes for all pages
+  generateQRCodes(fullBarcodeUrl);
+}
+
+async function generateQRCodes(url) {
+  // Check if QRCode library is available
+  if (typeof QRCode === "undefined") {
+    console.warn("QRCode library not loaded");
+    return;
+  }
+
+  const qrCanvases = labelPreview.querySelectorAll(".label-qrcode");
+
+  for (const canvas of qrCanvases) {
+    const urlToEncode = canvas.getAttribute("data-url") || url;
+    try {
+      await QRCode.toCanvas(canvas, urlToEncode, {
+        width: 120,
+        margin: 1,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
+  }
 }
 
 function nextBin() {
@@ -986,6 +1024,20 @@ async function downloadPdf() {
   }
 
   showToast("Generating PDF...", "success");
+
+  // Ensure QR codes are generated before capturing (they should already be, but just in case)
+  const qrCanvases = labelPreview.querySelectorAll(".label-qrcode");
+  if (qrCanvases.length > 0 && currentBinId) {
+    const currentUrl = window.location.origin + window.location.pathname;
+    const bins = getBins();
+    const currentBin = bins[currentBinId];
+    if (currentBin) {
+      const fullBarcodeUrl = currentUrl + "#" + currentBin.id;
+      await generateQRCodes(fullBarcodeUrl);
+      // Small delay to ensure canvas is fully rendered
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({
