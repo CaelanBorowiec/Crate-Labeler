@@ -511,8 +511,9 @@ function generateLabel() {
 
 function renderLabels(binData) {
   const itemsPerPage = parseInt(itemsPerPageInput.value) || 10;
-  const barcodeUrl = barcodeUrlInput.value || "";
-  const fullBarcodeUrl = barcodeUrl + binData.id;
+  // Generate hash-based URL for viewing this crate
+  const currentUrl = window.location.origin + window.location.pathname;
+  const fullBarcodeUrl = currentUrl + "#" + binData.id;
 
   // Split items into pages
   const pages = [];
