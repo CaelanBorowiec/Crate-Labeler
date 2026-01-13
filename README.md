@@ -14,14 +14,16 @@ A simple web app for creating printable labels for storage crates. Everything ru
 - **Text input** - Old school typing. Use `[quantity] [item name]` format if you want.
 - **Smart number parsing** - Converts spoken numbers like "five" to digits automatically.
 - **Multi-page labels** - Long lists automatically split across multiple pages.
-- **Barcode generation** - Each crate gets a unique ID with a scannable Code 128 barcode.
+- **QR code generation** - Each crate gets a unique ID with a scannable QR code linking directly to the crate.
+- **Share via QR** - Generate a QR code containing all crate data to share with another device. No internet required!
 - **Namespace system** - Group your crates (like "Audio Gear 1", "Audio Gear 2") and it'll auto-increment the numbers.
 - **PDF export** - Download labels as PDFs ready to print (4" × 6" format).
 - **Export/Import** - Export all your crates as JSON or import from a backup file.
 - **Hash-based routing** - Share direct links to specific crates using `#BIN-ID` in the URL.
-- **Auto-detected base URL** - The barcode base URL is automatically detected from your current location.
+- **Auto-detected base URL** - The QR code URL is automatically detected from your current location.
 - **Local storage** - Everything saves in your browser. No accounts, no cloud, no nonsense.
 - **Print ready** - Optimized for printing, but honestly it works fine for screen viewing too.
+- **Keyboard shortcuts** - Press `Ctrl/Cmd + Enter` to quickly generate labels.
 
 ## Getting Started
 
@@ -63,8 +65,9 @@ cd Crate-Labeler
 
 ```
 ┌─────────────────────────────────┐
-│         AUDIO GEAR 1            │
-│     ID: BIN-M4X7K2-A3B9         │
+│         AUDIO GEAR 1        ┌──┐│
+│     ID: BIN-M4X7K2-A3B9     │QR││
+│                             └──┘│
 ├─────────────────────────────────┤
 │ Contents:                       │
 │   5x  HDMI Cable 6ft            │
@@ -72,16 +75,23 @@ cd Crate-Labeler
 │   2x  Power Strip               │
 │  10x  Cable Ties                │
 ├─────────────────────────────────┤
-│     ║║│║║│║│║║║│║║│║║║║         │
-│   BIN-M4X7K2-A3B9               │
+│  https://site.com/#BIN-M4X7K2   │
 └─────────────────────────────────┘
 ```
+
+### Sharing a Crate
+
+You can share a crate with someone else in two ways:
+
+1. **Share the URL** - Click on a saved crate to load it, then share your browser URL. The hash (`#BIN-ID`) links directly to that crate.
+
+2. **Share via QR** - Click the "📲 Share Crate" button to generate a QR code containing all crate data. The recipient can scan it on their device to import the crate instantly - no internet required!
 
 ### Settings
 
 There are a couple settings you can tweak:
 
-- **Barcode Base URL** - If you want the barcode to link somewhere, set this. Automatically detected from your current URL, but you can override it.
+- **Barcode Base URL** - The base URL shown on labels. Automatically detected from your current URL, but you can override it.
 - **Items Per Label** - How many items fit on one label before it splits to a new page. Default is 10.
 
 ### Viewing Crates via URL
@@ -98,6 +108,8 @@ This is useful for:
 - Bookmarking frequently accessed crates
 - Quick navigation between crates
 
+If you visit a URL for a crate you don't have saved, you'll see a prompt to import a backup file.
+
 ## Technical Stuff
 
 ### Data Storage
@@ -105,7 +117,7 @@ This is useful for:
 Everything is stored in your browser's `localStorage`:
 
 - `binInventory` - All your saved crates and their contents
-- `binInventorySettings` - Your preferences (barcode URL, items per page, etc.)
+- `binInventorySettings` - Your preferences (base URL, items per page, etc.)
 
 ### Crate IDs
 
@@ -123,6 +135,10 @@ Uses the Web Speech API. It's pretty straightforward - continuous recognition, l
 ### Print Specs
 
 Labels are sized for 4" × 6" thermal label printers (the standard shipping label size), but they'll print fine on regular paper too.
+
+### Keyboard Shortcuts
+
+- `Ctrl/Cmd + Enter` - Generate label
 
 ## Customization
 
@@ -146,30 +162,14 @@ Also update the `@page` rule:
 }
 ```
 
-### Changing Barcode Type
-
-The app uses Code 128 by default. To switch to Code 39, change the font in `assets/css/styles.css`:
-
-```css
-.label-barcode {
-  font-family: "LibreBarcode39", monospace; /* Instead of LibreBarcode128 */
-}
-```
-
-## TODO
-
-- [ ] Mobile layout improvements
-
 ## Future Ideas
 
 Things I might add eventually (or you could add):
 
-- QR codes as an option
 - Different label size presets
 - Search through saved crates
 - Batch print multiple crates
 - Custom label templates
-- Shareable crate links with embedded data
 
 ## License
 
@@ -190,5 +190,5 @@ Built using:
 
 - [jsPDF](https://github.com/parallax/jsPDF) for PDF generation
 - [html2canvas](https://html2canvas.hertzen.com/) for converting HTML to images
-- [Libre Barcode](https://fonts.google.com/specimen/Libre+Barcode+128) fonts from Google Fonts
+- [QRCode.js](https://github.com/davidshimjs/qrcodejs) for QR code generation
 - Web Speech API for voice recognition

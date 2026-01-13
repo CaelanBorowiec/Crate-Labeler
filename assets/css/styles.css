@@ -50,11 +50,16 @@
     padding: 0;
 }
 
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     min-height: 100vh;
+    overflow-x: hidden;
     background-image:
         radial-gradient(ellipse at 20% 20%, rgba(63, 185, 80, 0.08) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 80%, rgba(88, 166, 255, 0.06) 0%, transparent 50%);
@@ -104,6 +109,229 @@ h1 {
     }
 }
 
+@media (max-width: 600px) {
+    .container {
+        padding: 16px;
+    }
+
+    header {
+        padding: 16px 0;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .panel-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .panel-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .panel-title {
+        font-size: 1.1rem;
+    }
+
+    .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .input-row .form-group {
+        margin-bottom: 16px;
+        width: 100% !important;
+        flex: none !important;
+    }
+
+    textarea {
+        min-height: 160px;
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        font-size: 0.875rem;
+    }
+
+    .btn-group {
+        gap: 8px;
+    }
+
+    /* Make button groups flow better on mobile */
+    .print-panel .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .print-panel .btn-group .btn:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .voice-transcript {
+        font-size: 0.8rem;
+        min-height: 50px;
+    }
+
+    .hint {
+        font-size: 0.7rem;
+    }
+
+    /* Label preview mobile adjustments */
+    .label-preview-container {
+        margin-top: 12px;
+    }
+
+    .label-preview {
+        min-height: 300px;
+    }
+
+    .label-page {
+        padding: 12px;
+        margin: 12px auto;
+        min-height: auto;
+    }
+
+    .label-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+
+    .label-header-text {
+        min-width: 0;
+        flex: 1 1 60%;
+    }
+
+    .label-bin-name {
+        font-size: 1.15rem;
+        word-break: break-word;
+    }
+
+    .label-bin-id {
+        font-size: 0.65rem;
+    }
+
+    .label-header .label-qrcode {
+        max-width: 60px;
+    }
+
+    .label-header .label-qrcode img,
+    .label-header .label-qrcode canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .label-contents-title {
+        font-size: 0.75rem;
+    }
+
+    .label-item {
+        font-size: 0.85rem;
+        padding: 3px 0;
+    }
+
+    .item-qty {
+        min-width: 36px;
+        font-size: 0.85rem;
+    }
+
+    .label-footer {
+        padding-top: 8px;
+    }
+
+    .label-barcode-text {
+        font-size: 0.55rem;
+    }
+
+    .label-continuation {
+        font-size: 0.65rem;
+    }
+
+    .label-page-indicator {
+        font-size: 0.6rem;
+    }
+
+    /* Saved bins mobile */
+    .saved-bins {
+        margin-top: 20px;
+    }
+
+    .saved-bins-header h3 {
+        font-size: 0.9rem !important;
+    }
+
+    /* Make export/import buttons fit on one line */
+    .saved-bins .btn-group {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    .saved-bins .btn-group .btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .bin-card {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .bin-card-name {
+        font-size: 0.85rem;
+    }
+
+    .bin-card-meta {
+        font-size: 0.7rem;
+    }
+
+    .bin-card-btn {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Toast adjustments */
+    .toast-container {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+    }
+
+    .toast {
+        padding: 10px 14px;
+        font-size: 0.875rem;
+    }
+
+    /* Empty state on mobile */
+    .empty-state {
+        padding: 24px 16px;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+    }
+}
+
 /* ============================================
    PANELS
    ============================================ */
@@ -114,6 +342,8 @@ h1 {
     border-radius: var(--radius);
     padding: 24px;
     box-shadow: var(--shadow);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .panel-header {
@@ -161,6 +391,7 @@ input[type="text"],
 input[type="number"],
 input[type="url"] {
     width: 100%;
+    max-width: 100%;
     padding: 12px 16px;
     font-family: inherit;
     font-size: 1rem;
@@ -349,8 +580,10 @@ textarea::placeholder {
 .label-preview-container {
     background: white;
     border-radius: var(--radius-sm);
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     margin-top: 16px;
+    max-width: 100%;
 }
 
 .label-preview {
@@ -362,6 +595,7 @@ textarea::placeholder {
 
 .label-page {
     width: 4in;
+    max-width: 100%;
     min-height: 6in;
     background: white;
     color: #000;
@@ -566,6 +800,10 @@ textarea::placeholder {
 @media (max-width: 600px) {
     .settings-row {
         grid-template-columns: 1fr;
+    }
+
+    .settings-row .form-group {
+        margin-bottom: 12px;
     }
 }
 
