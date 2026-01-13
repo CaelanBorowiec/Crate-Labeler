@@ -445,27 +445,6 @@ textarea::placeholder {
     gap: 8px;
 }
 
-.barcode-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.label-barcode {
-    font-family: 'LibreBarcode128', monospace;
-    font-size: 48px;
-    line-height: 1;
-    letter-spacing: 0;
-}
-
-.label-barcode-label {
-    font-size: 0.65rem;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
 .qr-container {
     display: flex;
     flex-direction: column;
@@ -474,8 +453,7 @@ textarea::placeholder {
 }
 
 .label-qrcode {
-    width: 120px;
-    height: 120px;
+    display: block;
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
@@ -967,12 +945,8 @@ textarea::placeholder {
     .item-qty,
     .item-name,
     .label-barcode-section,
-    .label-barcode,
-    .label-barcode-label,
     .label-barcode-text,
-    .barcode-container,
     .qr-container,
-    .label-qrcode,
     .label-qr-label,
     .label-continuation,
     .label-page-indicator {
@@ -980,10 +954,14 @@ textarea::placeholder {
         background: white !important;
     }
 
+    /* Don't override QR code canvas background */
+    .label-qrcode {
+        background: transparent !important;
+    }
+
     /* Specific gray text elements */
     .label-bin-id,
     .label-barcode-text,
-    .label-barcode-label,
     .label-qr-label {
         color: #666 !important;
     }

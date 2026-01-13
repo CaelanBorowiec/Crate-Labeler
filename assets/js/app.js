@@ -615,14 +615,10 @@ function renderLabels(binData) {
                 </div>
 
                 <div class="label-barcode-section">
-                    <div class="barcode-container">
-                        <div class="label-barcode">${binData.id}</div>
-                        <div class="label-barcode-label">Barcode ID</div>
-                    </div>
                     <div class="qr-container">
-                        <canvas class="label-qrcode" data-url="${escapeHtml(
+                        <div class="label-qrcode" data-url="${escapeHtml(
                           fullBarcodeUrl
-                        )}"></canvas>
+                        )}"></div>
                         <div class="label-qr-label">Scan to View</div>
                     </div>
                     <div class="label-barcode-text">${escapeHtml(
@@ -649,25 +645,27 @@ function renderLabels(binData) {
   generateQRCodes(fullBarcodeUrl);
 }
 
-async function generateQRCodes(url) {
+function generateQRCodes(url) {
   // Check if QRCode library is available
   if (typeof QRCode === "undefined") {
     console.warn("QRCode library not loaded");
     return;
   }
 
-  const qrCanvases = labelPreview.querySelectorAll(".label-qrcode");
+  const qrContainers = labelPreview.querySelectorAll(".label-qrcode");
 
-  for (const canvas of qrCanvases) {
-    const urlToEncode = canvas.getAttribute("data-url") || url;
+  for (const container of qrContainers) {
+    const urlToEncode = container.getAttribute("data-url") || url;
+    // Clear any existing QR code
+    container.innerHTML = "";
     try {
-      await QRCode.toCanvas(canvas, urlToEncode, {
+      new QRCode(container, {
+        text: urlToEncode,
         width: 120,
-        margin: 1,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
-        },
+        height: 120,
+        colorDark: "#000000",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.M,
       });
     } catch (error) {
       console.error("Error generating QR code:", error);
@@ -1087,6 +1085,14 @@ async function downloadPdf() {
 // ============================================
 // HASH ROUTING
 // ============================================
+
+function updateHash(binId) {
+  if (binId) {
+    window.history.replaceState(null, "", "#" + binId);
+  } else {
+    window.history.replaceState(null, "", window.location.pathname);
+  }
+}
 
 function checkHashAndLoadBin() {
   const hash = window.location.hash;
