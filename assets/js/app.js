@@ -9,7 +9,8 @@ const SETTINGS_KEY = "binInventorySettings";
 let currentBinId = null;
 let isListening = false;
 let recognition = null;
-let finalTranscriptParts = []; // Store final results by index to prevent duplicates
+let accumulatedFinalTranscript = ""; // Accumulated final transcript to prevent duplicates
+let lastResultIndex = -1; // Track which result indices we've processed
 let lastInterimTranscript = "";
 
 // DOM Elements
@@ -139,26 +140,45 @@ function setupSpeechRecognition() {
     voiceStatusDot.classList.remove("active");
     voiceStatusText.textContent = "Voice input stopped";
 
-    // Process final transcript from all collected parts
-    const fullTranscript = finalTranscriptParts.join(" ").trim();
-    if (fullTranscript) {
-      processVoiceTranscript(fullTranscript);
+    // Process the accumulated final transcript
+    if (accumulatedFinalTranscript.trim()) {
+      processVoiceTranscript(accumulatedFinalTranscript.trim());
     }
   };
 
   recognition.onresult = (event) => {
     let currentInterim = "";
 
-    // Process all results, storing finals by index to prevent duplicates
+    // Process results - on mobile, we need content-based deduplication
+    // because indices can reset or overlap unpredictably
     for (let i = 0; i < event.results.length; i++) {
       const result = event.results[i];
       const transcript = result[0].transcript.trim();
 
       if (result.isFinal) {
-        // Only store if we haven't already stored this index
-        // This prevents mobile browsers from adding duplicates
-        if (finalTranscriptParts[i] === undefined && transcript) {
-          finalTranscriptParts[i] = transcript;
+        // Only process this index if we haven't already
+        if (i > lastResultIndex && transcript) {
+          // Check if this transcript is already contained in our accumulated text
+          // This handles mobile browsers that send duplicate content
+          const normalizedNew = transcript.toLowerCase();
+          const normalizedExisting = accumulatedFinalTranscript.toLowerCase();
+          
+          // Check for exact duplicate or if new text is suffix of existing
+          if (!normalizedExisting.endsWith(normalizedNew) && 
+              normalizedExisting !== normalizedNew) {
+            // Check for overlapping content (mobile often sends overlapping results)
+            const overlap = findOverlap(accumulatedFinalTranscript, transcript);
+            if (overlap < transcript.length) {
+              // Only add the non-overlapping part
+              const newPart = transcript.substring(overlap);
+              if (newPart.trim()) {
+                accumulatedFinalTranscript = accumulatedFinalTranscript 
+                  ? accumulatedFinalTranscript + " " + newPart 
+                  : newPart;
+              }
+            }
+          }
+          lastResultIndex = i;
         }
       } else {
         // Only show interim for the latest non-final result
@@ -166,11 +186,8 @@ function setupSpeechRecognition() {
       }
     }
 
-    // Build display from stored final parts (filter out empty slots)
-    const finalDisplay = finalTranscriptParts.filter(Boolean).join(" ");
-
     // Show final + interim
-    let displayText = finalDisplay;
+    let displayText = accumulatedFinalTranscript;
     if (currentInterim) {
       displayText +=
         ' <span style="color: #8b949e;">' + currentInterim + "</span>";
@@ -203,7 +220,8 @@ function toggleVoiceInput() {
     recognition.stop();
   } else {
     // Reset state for new session
-    finalTranscriptParts = [];
+    accumulatedFinalTranscript = "";
+    lastResultIndex = -1;
     lastInterimTranscript = "";
     voiceTranscript.innerHTML = "<em>Listening...</em>";
     recognition.start();
@@ -211,7 +229,8 @@ function toggleVoiceInput() {
 }
 
 function clearVoiceTranscript() {
-  finalTranscriptParts = [];
+  accumulatedFinalTranscript = "";
+  lastResultIndex = -1;
   lastInterimTranscript = "";
   voiceTranscript.innerHTML = "<em>Voice transcript will appear here...</em>";
 }
@@ -339,6 +358,35 @@ function deduplicateConsecutiveWords(text) {
   }
 
   return result.join(" ");
+}
+
+/**
+ * Find the overlap between the end of existing text and start of new text.
+ * Returns the length of the overlapping portion.
+ * This helps handle mobile speech recognition that sends overlapping results.
+ */
+function findOverlap(existing, newText) {
+  if (!existing || !newText) return 0;
+  
+  const existingLower = existing.toLowerCase();
+  const newLower = newText.toLowerCase();
+  
+  // Check for word-based overlap (more reliable than character-based)
+  const existingWords = existingLower.split(/\s+/);
+  const newWords = newLower.split(/\s+/);
+  
+  // Try to find where newText overlaps with end of existing
+  for (let overlapLen = Math.min(existingWords.length, newWords.length); overlapLen > 0; overlapLen--) {
+    const existingEnd = existingWords.slice(-overlapLen).join(" ");
+    const newStart = newWords.slice(0, overlapLen).join(" ");
+    
+    if (existingEnd === newStart) {
+      // Found overlap - return character position after overlap
+      return newText.split(/\s+/).slice(0, overlapLen).join(" ").length + 1;
+    }
+  }
+  
+  return 0;
 }
 
 // ============================================
