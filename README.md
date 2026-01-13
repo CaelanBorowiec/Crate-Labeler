@@ -4,7 +4,7 @@ A simple web app for creating printable labels for storage crates. Everything ru
 
 ![Made with HTML/CSS/JS](https://img.shields.io/badge/Made%20with-HTML%2FCSS%2FJS-blue)
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-CC%20BY%204.0-blue)
 
 ![Crate Labeler Screenshot](crate-labeler-example.png)
 
@@ -181,10 +181,6 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 - [ ] Capitalization fixes - don't remove caps from proper names like XLR and HDMI
 - [ ] Recall crates with barcodes
 
-## Contributing
-
-If you want to add something or fix a bug, go for it. Fork the repo, make your changes, and open a pull request. I'm not super strict about it.
-
 ## Future Ideas
 
 Things I might add eventually (or you could add):
@@ -198,7 +194,16 @@ Things I might add eventually (or you could add):
 
 ## License
 
-MIT License - do whatever you want with it.
+This work is licensed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+
+You are free to:
+
+- **Share** — copy and redistribute the material in any medium or format
+- **Adapt** — remix, transform, and build upon the material for any purpose, even commercially
+
+Under the following terms:
+
+- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
 
 ## Credits
 
