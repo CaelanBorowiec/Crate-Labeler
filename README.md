@@ -1,58 +1,43 @@
-# 📦 Bin Inventory Labeler
+# Bin Inventory Labeler
 
-A fully client-side web application for creating printable inventory labels for storage bins. Features voice input, barcode generation, and PDF export—all without requiring a server or database.
+A simple web app for creating printable labels for storage bins. Everything runs in your browser—no server, no database, no hassle. Just open the HTML file and start labeling.
 
 ![Made with HTML/CSS/JS](https://img.shields.io/badge/Made%20with-HTML%2FCSS%2FJS-blue)
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-## ✨ Features
+## Features
 
-- **Voice Input** — Dictate your inventory items using the Web Speech API. Say "next" to move to a new line.
-- **Text Input** — Traditional keyboard entry with support for `[quantity] [item name]` format.
-- **Smart Parsing** — Automatically converts spoken numbers ("five HDMI cables") to digits.
-- **Multi-Page Labels** — Long item lists automatically split across multiple labels.
-- **Barcode Generation** — Each bin gets a unique ID rendered as a scannable Code 128 barcode.
-- **Namespace System** — Organize bins into groups (e.g., "Audio Gear 1", "Audio Gear 2") with auto-increment.
-- **PDF Export** — Download labels as print-ready PDFs (4" × 6" format).
-- **Local Storage** — All bin data persists in the browser—no account needed.
-- **Print Ready** — Optimized print stylesheet for direct printing.
+- **Voice input** - Talk to your computer and it'll type for you. Say "next" to move to a new line. Works best in Chrome/Edge.
+- **Text input** - Old school typing. Use `[quantity] [item name]` format if you want.
+- **Smart number parsing** - Converts spoken numbers like "five" to digits automatically.
+- **Multi-page labels** - Long lists automatically split across multiple pages.
+- **Barcode generation** - Each bin gets a unique ID with a scannable Code 128 barcode.
+- **Namespace system** - Group your bins (like "Audio Gear 1", "Audio Gear 2") and it'll auto-increment the numbers.
+- **PDF export** - Download labels as PDFs ready to print (4" × 6" format).
+- **Local storage** - Everything saves in your browser. No accounts, no cloud, no nonsense.
+- **Print ready** - Optimized for printing, but honestly it works fine for screen viewing too.
 
-## 🚀 Getting Started
+## Getting Started
 
-### Quick Start
-
-1. Clone or download this repository
-2. Open `index.html` in a modern web browser (Chrome or Edge recommended for voice input)
-3. Start labeling!
+Just download or clone this repo and open `index.html` in a browser. That's it. No build step, no npm install, no server to run.
 
 ```bash
 git clone https://github.com/your-username/Crate-Packer.git
 cd Crate-Packer
-# Open index.html in your browser
+# Now just open index.html in your browser
 ```
 
-> **Note:** No build step, server, or installation required. Just open the HTML file.
+**Browser notes:** Voice input only works in Chrome and Edge right now. Everything else works fine in Firefox and Safari too.
 
-### Browser Compatibility
-
-| Feature | Chrome | Edge | Firefox | Safari |
-|---------|--------|------|---------|--------|
-| Core App | ✅ | ✅ | ✅ | ✅ |
-| Voice Input | ✅ | ✅ | ❌ | ❌ |
-| PDF Export | ✅ | ✅ | ✅ | ✅ |
-
-## 📖 Usage
+## How to Use
 
 ### Creating a Label
 
-1. **Set the Bin Name**
-   - Enter a namespace (e.g., "Audio Gear", "Power Supplies")
-   - Set the bin number (auto-increments when you click "Next Bin")
+1. Set your bin name - enter a namespace (like "Audio Gear" or "Power Supplies") and a number. The number auto-increments when you click "Next Bin".
 
-2. **Add Contents** — Choose your input method:
+2. Add your items. You can type them in:
 
-   **Text Input:**
    ```
    5 HDMI Cable 6ft
    3 USB-C Adapter
@@ -60,17 +45,16 @@ cd Crate-Packer
    10 Cable Ties
    ```
 
-   **Voice Input:**
-   - Click "🎤 Start Voice Input"
-   - Speak: "5 HDMI cables, next, 3 USB adapters, next, 2 power strips"
-   - Say "next" to separate items
-   - Click "🛑 Stop Listening" when done
+   Or use voice input:
 
-3. **Generate & Print**
-   - Click "🏷️ Generate Label" to preview
-   - Click "🖨️ Print Labels" or "📄 Download PDF"
+   - Click "Start Voice Input"
+   - Say something like "5 HDMI cables, next, 3 USB adapters, next, 2 power strips"
+   - Say "next" between items to separate them
+   - Click "Stop Listening" when you're done
 
-### Label Format
+3. Generate and print - Click "Generate Label" to see a preview, then either print directly or download as PDF.
+
+### What the Labels Look Like
 
 ```
 ┌─────────────────────────────────┐
@@ -88,43 +72,44 @@ cd Crate-Packer
 └─────────────────────────────────┘
 ```
 
-### Configuration
+### Settings
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| **Barcode Base URL** | URL prefix for barcode links (bin ID appended) | `https://inventory.example.com/bin/` |
-| **Items Per Label** | Maximum items before splitting to a new page | `10` |
+There are a couple settings you can tweak:
 
-## 🗂️ Project Structure
+- **Barcode Base URL** - If you want the barcode to link somewhere, set this. Defaults to a placeholder.
+- **Items Per Label** - How many items fit on one label before it splits to a new page. Default is 10.
+
+## Project Structure
 
 ```
 Crate-Packer/
-├── index.html              # Main HTML structure
+├── index.html              # Main HTML file
 ├── README.md               # This file
 └── assets/
     ├── css/
-    │   └── styles.css      # Application styles
+    │   └── styles.css      # All the styling
     ├── fonts/
     │   ├── LibreBarcode128-Regular.ttf   # Barcode font
     │   └── LibreBarcode39-Regular.ttf    # Alternative barcode font
     └── js/
-        ├── app.js                        # Application logic
-        ├── html2canvas.min.js            # Screenshot library for PDF
-        └── jspdf.umd.min.js              # PDF generation library
+        ├── app.js                        # Main app logic
+        ├── html2canvas.min.js            # For PDF generation
+        └── jspdf.umd.min.js              # PDF library
 ```
 
-## 🔧 Technical Details
+## Technical Stuff
 
 ### Data Storage
 
-All data is stored in the browser's `localStorage`:
+Everything is stored in your browser's `localStorage`:
 
-- **`binInventory`** — Saved bins with their contents
-- **`binInventorySettings`** — User preferences (barcode URL, items per page)
+- `binInventory` - All your saved bins and their contents
+- `binInventorySettings` - Your preferences (barcode URL, items per page, etc.)
 
-### Bin ID Format
+### Bin IDs
 
-Each bin receives a unique identifier:
+Each bin gets a unique ID that looks like:
+
 ```
 BIN-{timestamp_base36}-{random_4char}
 Example: BIN-M4X7K2-A3B9
@@ -132,81 +117,68 @@ Example: BIN-M4X7K2-A3B9
 
 ### Voice Recognition
 
-Uses the [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) with:
-- Continuous recognition mode
-- Interim results for live feedback
-- "next" keyword detection for line breaks
-- Word-to-number conversion ("five" → 5)
+Uses the Web Speech API. It's pretty straightforward - continuous recognition, live feedback, and it converts words to numbers ("five" becomes 5). The "next" keyword triggers a line break.
 
-### Print Specifications
+### Print Specs
 
-Labels are optimized for **4" × 6" thermal label printers** (common shipping label size), but work with standard printers as well.
+Labels are sized for 4" × 6" thermal label printers (the standard shipping label size), but they'll print fine on regular paper too.
 
-## 🎨 Customization
+## Customization
 
 ### Changing Label Size
 
-Modify the `.label-page` CSS class in `assets/css/styles.css`:
+If you want different dimensions, edit the `.label-page` class in `assets/css/styles.css`:
 
 ```css
 .label-page {
-    width: 4in;      /* Change width */
-    min-height: 6in; /* Change height */
-    /* ... */
+  width: 4in; /* Change this */
+  min-height: 6in; /* And this */
 }
 ```
 
-Also update the `@page` rule in print styles:
+Also update the `@page` rule:
 
 ```css
 @page {
-    size: 4in 6in;  /* Match label dimensions */
-    margin: 0;
+  size: 4in 6in; /* Match your dimensions */
+  margin: 0;
 }
 ```
 
 ### Changing Barcode Type
 
-The app uses Code 128 barcodes via the LibreBarcode font. To use Code 39 instead, change in `assets/css/styles.css`:
+The app uses Code 128 by default. To switch to Code 39, change the font in `assets/css/styles.css`:
 
 ```css
 .label-barcode {
-    font-family: 'LibreBarcode39', monospace;  /* Instead of LibreBarcode128 */
+  font-family: "LibreBarcode39", monospace; /* Instead of LibreBarcode128 */
 }
 ```
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Feel free to:
+If you want to add something or fix a bug, go for it. Fork the repo, make your changes, and open a pull request. I'm not super strict about it.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Future Ideas
 
-## 📋 Roadmap
+Things I might add eventually (or you could add):
 
-- [ ] QR code option in addition to barcodes
-- [ ] Export/import bin data as JSON
-- [ ] Multiple label size presets
-- [ ] Search and filter saved bins
-- [ ] Batch print multiple bins
-- [ ] Custom label templates
+- QR codes as an option
+- Export/import bin data as JSON
+- Different label size presets
+- Search through saved bins
+- Batch print multiple bins
+- Custom label templates
 
-## 📄 License
+## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License - do whatever you want with it.
 
-## 🙏 Acknowledgments
+## Credits
 
-- [jsPDF](https://github.com/parallax/jsPDF) — PDF generation
-- [html2canvas](https://html2canvas.hertzen.com/) — HTML to canvas rendering
-- [Libre Barcode](https://fonts.google.com/specimen/Libre+Barcode+128) — Barcode fonts by Google Fonts
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — Voice recognition
+Built using:
 
----
-
-<p align="center">
-  Made with ❤️ for organizing chaos
-</p>
+- [jsPDF](https://github.com/parallax/jsPDF) for PDF generation
+- [html2canvas](https://html2canvas.hertzen.com/) for converting HTML to images
+- [Libre Barcode](https://fonts.google.com/specimen/Libre+Barcode+128) fonts from Google Fonts
+- Web Speech API for voice recognition
