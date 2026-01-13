@@ -104,6 +104,220 @@ h1 {
     }
 }
 
+@media (max-width: 600px) {
+    .container {
+        padding: 16px;
+    }
+
+    header {
+        padding: 16px 0;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .panel-header {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+
+    .panel-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+    }
+
+    .panel-title {
+        font-size: 1.1rem;
+    }
+
+    .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .input-row .form-group {
+        margin-bottom: 16px;
+    }
+
+    .input-row .form-group[style*="flex: 0 0 100px"] {
+        flex: 1 1 auto !important;
+    }
+
+    textarea {
+        min-height: 160px;
+        font-size: 0.85rem;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        font-size: 0.875rem;
+    }
+
+    .btn-group {
+        gap: 8px;
+    }
+
+    /* Make button groups flow better on mobile */
+    .print-panel .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .print-panel .btn-group .btn:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .voice-transcript {
+        font-size: 0.8rem;
+        min-height: 50px;
+    }
+
+    .hint {
+        font-size: 0.7rem;
+    }
+
+    /* Label preview mobile adjustments */
+    .label-preview-container {
+        margin-top: 12px;
+        border-radius: var(--radius-sm);
+        overflow-x: auto;
+    }
+
+    .label-preview {
+        min-height: 300px;
+    }
+
+    .label-page {
+        padding: 12px;
+        margin: 12px auto;
+        min-height: auto;
+    }
+
+    .label-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+
+    .label-header-text {
+        min-width: 0;
+        flex: 1 1 60%;
+    }
+
+    .label-bin-name {
+        font-size: 1.15rem;
+        word-break: break-word;
+    }
+
+    .label-bin-id {
+        font-size: 0.65rem;
+    }
+
+    .label-header .label-qrcode {
+        max-width: 60px;
+    }
+
+    .label-header .label-qrcode img,
+    .label-header .label-qrcode canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .label-contents-title {
+        font-size: 0.75rem;
+    }
+
+    .label-item {
+        font-size: 0.85rem;
+        padding: 3px 0;
+    }
+
+    .item-qty {
+        min-width: 36px;
+        font-size: 0.85rem;
+    }
+
+    .label-footer {
+        padding-top: 8px;
+    }
+
+    .label-barcode-text {
+        font-size: 0.55rem;
+    }
+
+    .label-continuation {
+        font-size: 0.65rem;
+    }
+
+    .label-page-indicator {
+        font-size: 0.6rem;
+    }
+
+    /* Saved bins mobile */
+    .saved-bins {
+        margin-top: 20px;
+    }
+
+    .saved-bins-header h3 {
+        font-size: 0.9rem !important;
+    }
+
+    .bin-card {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .bin-card-name {
+        font-size: 0.85rem;
+    }
+
+    .bin-card-meta {
+        font-size: 0.7rem;
+    }
+
+    .bin-card-btn {
+        padding: 5px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Toast adjustments */
+    .toast-container {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+    }
+
+    .toast {
+        padding: 10px 14px;
+        font-size: 0.875rem;
+    }
+
+    /* Empty state on mobile */
+    .empty-state {
+        padding: 24px 16px;
+    }
+
+    .empty-state-icon {
+        font-size: 2.5rem;
+    }
+
+    .empty-state p {
+        font-size: 0.85rem;
+    }
+}
+
 /* ============================================
    PANELS
    ============================================ */
@@ -362,6 +576,7 @@ textarea::placeholder {
 
 .label-page {
     width: 4in;
+    max-width: 100%;
     min-height: 6in;
     background: white;
     color: #000;
@@ -566,6 +781,10 @@ textarea::placeholder {
 @media (max-width: 600px) {
     .settings-row {
         grid-template-columns: 1fr;
+    }
+
+    .settings-row .form-group {
+        margin-bottom: 12px;
     }
 }
 
