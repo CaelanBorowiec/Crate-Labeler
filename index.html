@@ -93,6 +93,20 @@ Enter each item on a new line..."
               <h3 style="font-size: 1rem">Saved Bins</h3>
               <span class="counter-badge" id="binCount">0</span>
             </div>
+            <div class="btn-group mb-8">
+              <button class="btn btn-secondary" id="exportBinsBtn">
+                📤 Export Bins
+              </button>
+              <button class="btn btn-secondary" id="importBinsBtn">
+                📥 Import Bins
+              </button>
+              <input
+                type="file"
+                id="importFileInput"
+                accept=".json"
+                style="display: none"
+              />
+            </div>
             <div class="bins-list" id="binsList">
               <div class="empty-state">
                 <div class="empty-state-icon">📦</div>
@@ -155,6 +169,32 @@ Enter each item on a new line..."
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>📥 Import Bins</h3>
+          <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="importModalMessage">
+            You have existing bins saved. How would you like to handle the
+            import?
+          </p>
+          <div class="import-stats" id="importStats"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="modalOverwrite">
+            🗑️ Clear & Replace
+          </button>
+          <button class="btn btn-primary" id="modalMerge">
+            🔀 Merge (Rename Duplicates)
+          </button>
+          <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- External Libraries -->
     <script src="assets/js/jspdf.umd.min.js"></script>

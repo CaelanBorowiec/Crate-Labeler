@@ -32,6 +32,19 @@ let barcodeUrlInput;
 let itemsPerPageInput;
 let printBtn;
 let downloadPdfBtn;
+let exportBinsBtn;
+let importBinsBtn;
+let importFileInput;
+let importModal;
+let modalClose;
+let modalOverwrite;
+let modalMerge;
+let modalCancel;
+let importStats;
+let importModalMessage;
+
+// Import state
+let pendingImportData = null;
 
 // ============================================
 // INITIALIZATION
@@ -57,6 +70,16 @@ function init() {
   itemsPerPageInput = document.getElementById("itemsPerPage");
   printBtn = document.getElementById("printBtn");
   downloadPdfBtn = document.getElementById("downloadPdfBtn");
+  exportBinsBtn = document.getElementById("exportBinsBtn");
+  importBinsBtn = document.getElementById("importBinsBtn");
+  importFileInput = document.getElementById("importFileInput");
+  importModal = document.getElementById("importModal");
+  modalClose = document.getElementById("modalClose");
+  modalOverwrite = document.getElementById("modalOverwrite");
+  modalMerge = document.getElementById("modalMerge");
+  modalCancel = document.getElementById("modalCancel");
+  importStats = document.getElementById("importStats");
+  importModalMessage = document.getElementById("importModalMessage");
 
   loadSettings();
   loadBins();
@@ -672,6 +695,182 @@ function printSingleBin(binId) {
 }
 
 // ============================================
+// IMPORT / EXPORT
+// ============================================
+
+function exportBins() {
+  const bins = getBins();
+  const binCount = Object.keys(bins).length;
+
+  if (binCount === 0) {
+    showToast("No bins to export", "error");
+    return;
+  }
+
+  const exportData = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    bins: bins,
+  };
+
+  const jsonString = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `crate-bins-${new Date().toISOString().split("T")[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`Exported ${binCount} bin(s) successfully!`, "success");
+}
+
+function triggerImport() {
+  importFileInput.click();
+}
+
+function handleImportFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      processImportData(data);
+    } catch (error) {
+      showToast("Invalid JSON file. Please check the file format.", "error");
+      console.error("Import error:", error);
+    }
+  };
+  reader.readAsText(file);
+
+  // Reset input so same file can be imported again
+  importFileInput.value = "";
+}
+
+function processImportData(data) {
+  // Validate import data structure
+  if (!data.bins || typeof data.bins !== "object") {
+    showToast("Invalid file format. Missing bins data.", "error");
+    return;
+  }
+
+  const importedBins = data.bins;
+  const importCount = Object.keys(importedBins).length;
+
+  if (importCount === 0) {
+    showToast("No bins found in the import file.", "error");
+    return;
+  }
+
+  const existingBins = getBins();
+  const existingCount = Object.keys(existingBins).length;
+
+  // If no existing bins, import directly
+  if (existingCount === 0) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(importedBins));
+    loadBins();
+    showToast(`Imported ${importCount} bin(s) successfully!`, "success");
+    return;
+  }
+
+  // Find duplicates (bins with same ID)
+  const duplicateIds = Object.keys(importedBins).filter(
+    (id) => existingBins[id]
+  );
+
+  // Store pending import data and show modal
+  pendingImportData = importedBins;
+
+  // Update modal with stats
+  importStats.innerHTML = `
+    <div class="stats-row">
+      <span class="stats-label">Existing bins:</span>
+      <span class="stats-value">${existingCount}</span>
+    </div>
+    <div class="stats-row">
+      <span class="stats-label">Bins to import:</span>
+      <span class="stats-value">${importCount}</span>
+    </div>
+    <div class="stats-row ${duplicateIds.length > 0 ? "stats-warning" : ""}">
+      <span class="stats-label">Duplicate IDs:</span>
+      <span class="stats-value">${duplicateIds.length}</span>
+    </div>
+  `;
+
+  if (duplicateIds.length > 0) {
+    importModalMessage.textContent = `Found ${duplicateIds.length} bin(s) with duplicate IDs. How would you like to proceed?`;
+  } else {
+    importModalMessage.textContent = `You have ${existingCount} existing bin(s). How would you like to handle the import?`;
+  }
+
+  showImportModal();
+}
+
+function showImportModal() {
+  importModal.classList.add("visible");
+}
+
+function hideImportModal() {
+  importModal.classList.remove("visible");
+  pendingImportData = null;
+}
+
+function executeOverwrite() {
+  if (!pendingImportData) return;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pendingImportData));
+  loadBins();
+
+  const count = Object.keys(pendingImportData).length;
+  showToast(`Replaced with ${count} imported bin(s)!`, "success");
+
+  hideImportModal();
+}
+
+function executeMerge() {
+  if (!pendingImportData) return;
+
+  const existingBins = getBins();
+  const mergedBins = { ...existingBins };
+  let renamedCount = 0;
+  let addedCount = 0;
+
+  for (const [binId, binData] of Object.entries(pendingImportData)) {
+    if (mergedBins[binId]) {
+      // Duplicate ID found - generate new ID and rename
+      const newId = generateBinId();
+      const renamedBin = {
+        ...binData,
+        id: newId,
+        name: binData.name + " (Imported)",
+        updatedAt: new Date().toISOString(),
+      };
+      mergedBins[newId] = renamedBin;
+      renamedCount++;
+    } else {
+      mergedBins[binId] = binData;
+      addedCount++;
+    }
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedBins));
+  loadBins();
+
+  let message = `Merged successfully! Added ${addedCount} bin(s)`;
+  if (renamedCount > 0) {
+    message += `, renamed ${renamedCount} duplicate(s)`;
+  }
+  showToast(message, "success");
+
+  hideImportModal();
+}
+
+// ============================================
 // PRINT & PDF
 // ============================================
 
@@ -775,6 +974,20 @@ function setupEventListeners() {
   clearAllBtn.addEventListener("click", clearAll);
   printBtn.addEventListener("click", printLabels);
   downloadPdfBtn.addEventListener("click", downloadPdf);
+
+  // Import/Export
+  exportBinsBtn.addEventListener("click", exportBins);
+  importBinsBtn.addEventListener("click", triggerImport);
+  importFileInput.addEventListener("change", handleImportFile);
+
+  // Import modal
+  modalClose.addEventListener("click", hideImportModal);
+  modalCancel.addEventListener("click", hideImportModal);
+  modalOverwrite.addEventListener("click", executeOverwrite);
+  modalMerge.addEventListener("click", executeMerge);
+  importModal.addEventListener("click", (e) => {
+    if (e.target === importModal) hideImportModal();
+  });
 
   // Auto-save settings on change
   barcodeUrlInput.addEventListener("change", saveSettings);
