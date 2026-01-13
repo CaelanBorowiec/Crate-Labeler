@@ -842,6 +842,33 @@ textarea::placeholder {
     }
 }
 
+/* Share Modal */
+.share-modal-body {
+    text-align: center;
+}
+
+.share-qr-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: white;
+    border-radius: var(--radius-sm);
+    margin: 16px 0;
+}
+
+.share-crate-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.share-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
 /* ============================================
    PRINT STYLES
    ============================================ */
