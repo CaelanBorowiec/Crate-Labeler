@@ -11,7 +11,7 @@
       <header>
         <h1>📦 Crate Labeler</h1>
         <p class="subtitle">
-          Create printable labels for storage bins with voice or text input
+          Create printable labels for storage crates with voice or text input
         </p>
       </header>
 
@@ -82,21 +82,35 @@ Enter each item on a new line..."
               🏷️ Generate Label
             </button>
             <button class="btn btn-secondary" id="nextBinBtn">
-              ➡️ Next Bin
+              ➡️ Next Crate
             </button>
             <button class="btn btn-danger" id="clearAllBtn">🗑️ Clear</button>
           </div>
 
-          <!-- Saved Bins -->
+          <!-- Saved Crates -->
           <div class="saved-bins">
             <div class="saved-bins-header">
-              <h3 style="font-size: 1rem">Saved Bins</h3>
+              <h3 style="font-size: 1rem">Saved Crates</h3>
               <span class="counter-badge" id="binCount">0</span>
+            </div>
+            <div class="btn-group mb-8">
+              <button class="btn btn-secondary" id="exportBinsBtn">
+                📤 Export Crates
+              </button>
+              <button class="btn btn-secondary" id="importBinsBtn">
+                📥 Import Crates
+              </button>
+              <input
+                type="file"
+                id="importFileInput"
+                accept=".json"
+                style="display: none"
+              />
             </div>
             <div class="bins-list" id="binsList">
               <div class="empty-state">
                 <div class="empty-state-icon">📦</div>
-                <p>No bins saved yet</p>
+                <p>No crates saved yet</p>
               </div>
             </div>
           </div>
@@ -116,9 +130,9 @@ Enter each item on a new line..."
               <input
                 type="url"
                 id="barcodeUrl"
-                placeholder="https://example.com/bin/"
+                placeholder="https://example.com/crate/"
               />
-              <p class="hint">Bin ID will be appended to this URL</p>
+              <p class="hint">Crate ID will be appended to this URL</p>
             </div>
             <div class="form-group">
               <label for="itemsPerPage">Items Per Label</label>
@@ -155,6 +169,32 @@ Enter each item on a new line..."
 
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Import Modal -->
+    <div class="modal-overlay" id="importModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>📥 Import Crates</h3>
+          <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="importModalMessage">
+            You have existing crates saved. How would you like to handle the
+            import?
+          </p>
+          <div class="import-stats" id="importStats"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-danger" id="modalOverwrite">
+            🗑️ Clear & Replace
+          </button>
+          <button class="btn btn-primary" id="modalMerge">
+            🔀 Merge (Rename Duplicates)
+          </button>
+          <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- External Libraries -->
     <script src="assets/js/jspdf.umd.min.js"></script>
