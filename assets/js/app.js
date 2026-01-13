@@ -45,6 +45,7 @@ let importModalMessage;
 
 // Import state
 let pendingImportData = null;
+let requestedBinId = null; // Track bin ID requested via hash
 
 // ============================================
 // INITIALIZATION
@@ -816,6 +817,9 @@ function processImportData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(importedBins));
     loadBins();
     showToast(`Imported ${importCount} crate(s) successfully!`, "success");
+
+    // Check if the requested bin is now available
+    checkAndLoadRequestedBin(importedBins);
     return;
   }
 
@@ -870,6 +874,9 @@ function executeOverwrite() {
   const count = Object.keys(pendingImportData).length;
   showToast(`Replaced with ${count} imported crate(s)!`, "success");
 
+  // Check if the requested bin is now available
+  checkAndLoadRequestedBin(pendingImportData);
+
   hideImportModal();
 }
 
@@ -907,6 +914,9 @@ function executeMerge() {
     message += `, renamed ${renamedCount} duplicate(s)`;
   }
   showToast(message, "success");
+
+  // Check if the requested bin is now available
+  checkAndLoadRequestedBin(mergedBins);
 
   hideImportModal();
 }
@@ -1001,23 +1011,64 @@ function checkHashAndLoadBin() {
       window.scrollTo(0, 0);
     }, 100);
   } else {
-    showToast(`Crate ${binId} not found`, "error");
-    // Clear invalid hash
-    window.history.replaceState(null, "", window.location.pathname);
+    // Show persistent message with import prompt
+    showCrateNotFoundMessage(binId);
   }
 }
 
-function updateHash(binId) {
-  if (binId) {
-    const newHash = `#${binId}`;
-    if (window.location.hash !== newHash) {
-      window.history.replaceState(null, "", window.location.pathname + newHash);
-    }
-  } else {
-    // Clear hash if no bin
-    if (window.location.hash) {
-      window.history.replaceState(null, "", window.location.pathname);
-    }
+function showCrateNotFoundMessage(binId) {
+  // Store the requested bin ID so we can check after import
+  requestedBinId = binId;
+
+  // Display persistent message in label preview
+  labelPreview.innerHTML = `
+    <div class="empty-state" style="color: #d1242f;">
+      <div class="empty-state-icon">📦</div>
+      <h3 style="margin: 16px 0 8px 0; font-size: 1.2rem;">Crate Not Found</h3>
+      <p style="margin-bottom: 16px;">The crate <strong>${escapeHtml(
+        binId
+      )}</strong> was not found in your local storage.</p>
+      <p style="margin-bottom: 24px; color: #666;">If you have a saved export file, you can import it to load this crate.</p>
+      <button class="btn btn-primary" onclick="triggerImport()" style="margin-top: 8px;">
+        📥 Import Crate Data
+      </button>
+      <button class="btn btn-secondary" onclick="clearCrateNotFoundMessage()" style="margin-top: 8px; margin-left: 8px;">
+        Dismiss
+      </button>
+    </div>
+  `;
+
+  // Also show a toast
+  showToast(`Crate ${binId} not found. You can import a saved file.`, "error");
+
+  // Scroll to top to show the message
+  window.scrollTo(0, 0);
+}
+
+function clearCrateNotFoundMessage() {
+  // Clear the hash and requested bin ID
+  window.history.replaceState(null, "", window.location.pathname);
+  requestedBinId = null;
+
+  // Show default empty state
+  labelPreview.innerHTML = `
+    <div class="empty-state" style="color: #666;">
+      <div class="empty-state-icon">🏷️</div>
+      <p>Enter contents and click "Generate Label" to preview</p>
+    </div>
+  `;
+}
+
+function checkAndLoadRequestedBin(bins) {
+  // If there was a requested bin ID and it's now available, load it
+  if (requestedBinId && bins[requestedBinId]) {
+    const binIdToLoad = requestedBinId; // Store before clearing
+    requestedBinId = null; // Clear the requested ID
+    setTimeout(() => {
+      loadBinToEditor(binIdToLoad);
+      showToast(`Found and loaded crate ${binIdToLoad}!`, "success");
+      window.scrollTo(0, 0);
+    }, 100);
   }
 }
 
