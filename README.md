@@ -1,6 +1,6 @@
-# Bin Inventory Labeler
+# Crate Inventory Labeler
 
-A simple web app for creating printable labels for storage bins. Everything runs in your browser—no server, no database, no hassle. Just open the HTML file and start labeling.
+A simple web app for creating printable labels for storage crates. Everything runs in your browser—no server, no database, no hassle. Just open the HTML file and start labeling.
 
 ![Made with HTML/CSS/JS](https://img.shields.io/badge/Made%20with-HTML%2FCSS%2FJS-blue)
 ![No Server Required](https://img.shields.io/badge/Server-Not%20Required-green)
@@ -14,8 +14,8 @@ A simple web app for creating printable labels for storage bins. Everything runs
 - **Text input** - Old school typing. Use `[quantity] [item name]` format if you want.
 - **Smart number parsing** - Converts spoken numbers like "five" to digits automatically.
 - **Multi-page labels** - Long lists automatically split across multiple pages.
-- **Barcode generation** - Each bin gets a unique ID with a scannable Code 128 barcode.
-- **Namespace system** - Group your bins (like "Audio Gear 1", "Audio Gear 2") and it'll auto-increment the numbers.
+- **Barcode generation** - Each crate gets a unique ID with a scannable Code 128 barcode.
+- **Namespace system** - Group your crates (like "Audio Gear 1", "Audio Gear 2") and it'll auto-increment the numbers.
 - **PDF export** - Download labels as PDFs ready to print (4" × 6" format).
 - **Local storage** - Everything saves in your browser. No accounts, no cloud, no nonsense.
 - **Print ready** - Optimized for printing, but honestly it works fine for screen viewing too.
@@ -36,7 +36,7 @@ cd Crate-Packer
 
 ### Creating a Label
 
-1. Set your bin name - enter a namespace (like "Audio Gear" or "Power Supplies") and a number. The number auto-increments when you click "Next Bin".
+1. Set your crate name - enter a namespace (like "Audio Gear" or "Power Supplies") and a number. The number auto-increments when you click "Next Crate".
 
 2. Add your items. You can type them in:
 
@@ -105,12 +105,12 @@ Crate-Packer/
 
 Everything is stored in your browser's `localStorage`:
 
-- `binInventory` - All your saved bins and their contents
+- `binInventory` - All your saved crates and their contents
 - `binInventorySettings` - Your preferences (barcode URL, items per page, etc.)
 
-### Bin IDs
+### Crate IDs
 
-Each bin gets a unique ID that looks like:
+Each crate gets a unique ID that looks like:
 
 ```
 BIN-{timestamp_base36}-{random_4char}
@@ -157,6 +157,14 @@ The app uses Code 128 by default. To switch to Code 39, change the font in `asse
 }
 ```
 
+## TODO
+
+- [ ] Mobile layout improvements
+- [ ] Capitalization fixes
+- [ ] Recall crates with barcodes
+- [ ] Base URL autodetect
+- [ ] No data warning
+
 ## Contributing
 
 If you want to add something or fix a bug, go for it. Fork the repo, make your changes, and open a pull request. I'm not super strict about it.
@@ -166,10 +174,10 @@ If you want to add something or fix a bug, go for it. Fork the repo, make your c
 Things I might add eventually (or you could add):
 
 - QR codes as an option
-- Export/import bin data as JSON
+- Export/import crate data as JSON
 - Different label size presets
-- Search through saved bins
-- Batch print multiple bins
+- Search through saved crates
+- Batch print multiple crates
 - Custom label templates
 
 ## License
